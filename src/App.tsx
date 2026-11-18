@@ -31,6 +31,7 @@ import Settings from "./pages/Settings";
 import Achievements from "./pages/Achievements";
 import NotFound from "./pages/NotFound";
 import AuthCallback from "./pages/AuthCallback";
+import AuthConfirm from "./pages/AuthConfirm";
 import PalmScanner from "./pages/PalmScanner";
 import Home from "./pages/Home";
 import Contact from "./pages/Contact";
@@ -144,6 +145,7 @@ const AppRoutes = () => {
       <ResetPassword />
     } />
     <Route path="/auth/callback" element={<AuthCallback />} />
+    <Route path="/auth/confirm" element={<AuthConfirm />} />
     <Route path="/onboarding" element={
 
         <Onboarding />

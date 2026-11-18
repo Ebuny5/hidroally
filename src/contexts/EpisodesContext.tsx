@@ -132,11 +132,24 @@ export const EpisodesProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const deleteEpisode = async (id: string): Promise<{ error: unknown }> => {
     try {
       // 1. Permanent hard deletion from database
-      const { error: deleteError } = await supabase
+      if (!user) throw new Error("Not signed in");
+      const { data: deletedRows, error: deleteError } = await supabase
         .from("episodes")
         .delete()
-        .eq("id", id);
+        .eq("id", id)
+        .eq("user_id", user.id)
+        .select("id");
       if (deleteError) throw deleteError;
+
+      // Confirm the row is really gone (a silent 0-row delete must not look like success)
+      if (!deletedRows || deletedRows.length === 0) {
+        const { data: stillThere } = await supabase
+          .from("episodes")
+          .select("id")
+          .eq("id", id)
+          .maybeSingle();
+        if (stillThere) throw new Error("Episode could not be deleted");
+      }
 
       // 2. Remove from React memory state immediately
       setEpisodes((prev) => prev.filter((ep) => ep.id !== id));
@@ -167,9 +180,14 @@ export const EpisodesProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         console.warn("Failed to clean up deleted episode from local storage:", lsErr);
       }
 
+      // 4. Re-sync from the server and notify other listeners (engagement, consistency)
+      await fetchEpisodes();
+      window.dispatchEvent(new CustomEvent("episodes:changed", { detail: { deletedId: id } }));
+
       return { error: null };
     } catch (err) {
       console.error("Error deleting episode:", err);
+      await fetchEpisodes();
       return { error: err };
     }
   };

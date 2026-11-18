@@ -131,6 +131,9 @@ export function useEngagement() {
 
   useEffect(() => {
     fetchLogs();
+    const onChanged = () => fetchLogs();
+    window.addEventListener("episodes:changed", onChanged);
+    return () => window.removeEventListener("episodes:changed", onChanged);
   }, [fetchLogs]);
 
   const trackAction = useCallback(
