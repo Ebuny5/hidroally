@@ -338,3 +338,41 @@ body {
     height: 42px !important;
   }
 }
+
+/* Opaque clinical reports: section text and labels share accessible semantic tones. */
+:root {
+  --report-clinical: 157 72% 25%;
+  --report-relief: 214 76% 33%;
+  --report-lifestyle: 32 90% 27%;
+  --report-medical: 271 62% 35%;
+  --report-support: 331 64% 35%;
+}
+.dark {
+  --report-clinical: 157 62% 72%;
+  --report-relief: 211 85% 78%;
+  --report-lifestyle: 42 88% 73%;
+  --report-medical: 272 76% 83%;
+  --report-support: 331 76% 82%;
+}
+.report-clinical { --report-tone: var(--report-clinical); }
+.report-relief { --report-tone: var(--report-relief); }
+.report-lifestyle { --report-tone: var(--report-lifestyle); }
+.report-medical { --report-tone: var(--report-medical); }
+.report-support { --report-tone: var(--report-support); }
+.episode-report { letter-spacing: 0; }
+.episode-report .report-section, .episode-report .report-support {
+  background: hsl(var(--card));
+  border-left-color: hsl(var(--report-tone));
+  backdrop-filter: none;
+  filter: none;
+  opacity: 1;
+}
+.episode-report .report-label, .episode-report .report-text,
+.episode-report .report-section h3, .episode-report .report-section p {
+  color: hsl(var(--report-tone));
+  overflow-wrap: anywhere;
+  letter-spacing: 0;
+}
+.episode-report .report-section h3 { font-size: 1.25rem; line-height: 1.4; }
+.episode-report .report-section p { line-height: 1.7; }
+.episode-report .report-dot { background: hsl(var(--report-tone)); }

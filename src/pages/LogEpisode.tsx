@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import AppLayout from "@/components/layout/AppLayout";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
@@ -835,12 +836,11 @@ const LogEpisode = () => {
                 isDryDay: false,
                 episodeId: savedEpId,
                 userName: profile?.display_name || undefined,
-                recentRelief: (insights as any)?.immediateRelief || [],
+                recentRelief: insights.immediateRelief || [],
                 profile: { declaredType, onsetAge, familyHistory, nightSweats, onMedication, conditions },
               },
             });
-            const timeout = new Promise<null>(r => setTimeout(() => r(null), 25000));
-            const res: any = await Promise.race([aiCall, timeout]);
+            const res = await aiCall;
             if (res && !res.error && res.data?.insights?.clinicalAnalysis) {
               finalInsights = { ...insights, ...res.data.insights, source: 'ai' };
             }
@@ -904,27 +904,27 @@ const LogEpisode = () => {
   if (showInsights) {
     return (
       <AppLayout>
-        <div className="min-h-screen bg-slate-900/95 py-8 px-4 text-white">
+        <div className="min-h-screen bg-background py-8 px-4 text-foreground">
           <div className="max-w-xl mx-auto space-y-4">
             {isLoadingInsights ? (
               <EpisodeProcessingView onComplete={() => setIsLoadingInsights(false)} />
             ) : aiInsights ? (
               <AIGeneratedInsights insights={aiInsights} />
             ) : (
-              <div className="w-full bg-slate-800 rounded-3xl p-6 border border-slate-700 text-center">
-                <p className="text-slate-300 text-sm">Episode saved. View your history for full longitudinal tracking.</p>
+              <div className="w-full bg-card rounded-lg p-6 border border-border text-center">
+                <p className="text-card-foreground text-sm">Episode saved. View your history for full longitudinal tracking.</p>
               </div>
             )}
 
             <div className="flex flex-col gap-2.5 pt-2">
-              <button
+              <Button
                 onClick={() => navigate("/home")}
-                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-teal-500 to-indigo-600 hover:opacity-95 text-white font-bold transition-all shadow-lg flex items-center justify-center gap-2 text-sm"
+                className="w-full min-h-[56px] rounded-lg bg-primary text-primary-foreground font-semibold flex items-center justify-center gap-2 text-sm"
               >
                 <LayoutDashboard className="h-4 w-4" /> Go to Dashboard
-              </button>
+              </Button>
               <div className="grid grid-cols-2 gap-3">
-                <button
+                <Button
                   onClick={() => {
                     syncLiveTime();
                     setSeverity(3);
@@ -936,16 +936,16 @@ const LogEpisode = () => {
                     setShowInsights(false);
                     setAiInsights(null);
                   }}
-                  className="py-3 rounded-2xl border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs flex items-center justify-center gap-1.5 transition-all"
+                  className="min-h-[56px] rounded-lg border border-border bg-card hover:bg-accent text-card-foreground font-semibold text-xs flex items-center justify-center gap-1.5 transition-all"
                 >
                   <Plus className="h-3.5 w-3.5" /> Log Another
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={() => navigate("/history")}
-                  className="py-3 rounded-2xl border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs flex items-center justify-center gap-1.5 transition-all"
+                  className="min-h-[56px] rounded-lg border border-border bg-card hover:bg-accent text-card-foreground font-semibold text-xs flex items-center justify-center gap-1.5 transition-all"
                 >
                   <History className="h-3.5 w-3.5" /> View History
-                </button>
+                </Button>
               </div>
             </div>
           </div>

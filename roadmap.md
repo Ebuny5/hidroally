@@ -1,0 +1,5 @@
+- [x] Connect episode reports directly to Gemini 2.5 Flash with selected details, private history and Knowledge Base context.
+- [x] Remove report engine/training labels and make all report text clear with distinct section colours.
+- [x] Run focused checks, deploy the analysis function and document any unverified live flow.
+
+Verification: four server tests passed; direct Google request returned 200 with all synthetic areas/triggers and nine relief strategies. Real Gemini response rendered at 360px and 1280px with opaque surfaces, distinct whole-section colours and no horizontal overflow. Function deployed and CORS preflight returned 200. Authenticated save-to-report verification remains unavailable because this external Supabase project has no injectable test session; no records were added to real users' histories.

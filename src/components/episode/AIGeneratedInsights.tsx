@@ -1,9 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Lightbulb, Stethoscope, Heart, Activity, AlertCircle, Copy, Download, Volume2, Square, Loader2 } from 'lucide-react';
+import { Lightbulb, Stethoscope, Heart, AlertCircle, Copy, Download, Volume2, Square, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useReadAloud } from '@/hooks/useReadAloud';
@@ -61,7 +59,7 @@ const AIGeneratedInsights: React.FC<AIInsightsProps> = ({ insights }) => {
         size="sm"
         onClick={() => toggle(text, sectionKey)}
         className={cn(
-          'min-h-[44px] rounded-xl shrink-0 bg-white text-slate-900 border border-slate-200 hover:bg-slate-100',
+          'min-h-[56px] min-w-[56px] rounded-lg shrink-0 border border-border bg-card text-card-foreground hover:bg-accent',
           full && 'w-full sm:w-auto min-h-[56px]',
           playing && 'border-primary text-primary shadow-sm',
         )}
@@ -81,14 +79,14 @@ const AIGeneratedInsights: React.FC<AIInsightsProps> = ({ insights }) => {
   const BulletItem = ({ text, tone = 'blue' }: { text: string; tone?: 'blue' | 'green' | 'amber' }) => {
     const m = text.match(/^(For your [^:]{1,60}|[A-Z][^:.]{1,50}):\s+(.*)$/s);
     const T = {
-      blue:  { dot: 'bg-blue-500',    head: 'text-blue-800',    body: 'text-slate-700' },
-      green: { dot: 'bg-emerald-500', head: 'text-emerald-800', body: 'text-slate-700' },
-      amber: { dot: 'bg-amber-500',   head: 'text-amber-800',   body: 'text-slate-700' },
+      blue:  { dot: 'report-dot', head: 'report-label', body: 'report-text' },
+      green: { dot: 'report-dot', head: 'report-label', body: 'report-text' },
+      amber: { dot: 'report-dot', head: 'report-label', body: 'report-text' },
     }[tone];
     return (
-      <li className="grid grid-cols-[0.75rem_1fr] gap-x-3 items-start">
+      <li className="grid grid-cols-[0.75rem_1fr] gap-x-3 items-start min-w-0">
         <span className={cn('mt-[0.55rem] h-2 w-2 rounded-full', T.dot)} aria-hidden />
-        <span className={cn('leading-relaxed', T.body)}>
+        <span className={cn('leading-relaxed break-words min-w-0', T.body)}>
           {m ? <><strong className={cn('font-semibold', T.head)}>{m[1]}:</strong> {m[2]}</> : text}
         </span>
       </li>
@@ -201,18 +199,18 @@ Disclaimer: These insights are AI-generated for educational and tracking support
   };
 
   return (
-    <div className="space-y-4">
+    <div className="episode-report space-y-6">
       {/* HidroAlly Hears You - Emotional Support Card */}
       {insights.emotionalSupport && (
-        <Card className="border-l-4 border-l-pink-400 bg-pink-50/50">
+        <Card className="report-support border-l-4 bg-card">
           <CardHeader>
             <div className="flex items-center gap-2">
               <span>💜</span>
-              <CardTitle className="text-pink-700">HidroAlly Hears You</CardTitle>
+              <CardTitle className="report-label">HidroAlly Hears You</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-700 leading-relaxed italic">
+            <p className="text-card-foreground leading-relaxed">
               {insights.emotionalSupport}
             </p>
           </CardContent>
@@ -220,13 +218,13 @@ Disclaimer: These insights are AI-generated for educational and tracking support
       )}
 
       {/* HidroAlly greeting */}
-      <Card className="border-none bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md rounded-2xl overflow-hidden">
+      <Card className="border-none bg-primary text-primary-foreground shadow-sm rounded-lg overflow-hidden">
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0 backdrop-blur-sm">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0">
               <span className="text-lg">✨</span>
             </div>
-            <p className="text-[15px] font-semibold leading-snug tracking-tight">
+            <p className="text-[15px] font-semibold leading-relaxed tracking-normal">
               {insights.isDryDay && insights.dryDayMetrics ? insights.dryDayMetrics.header : "I've analyzed your episode. Here is your personalized Clinical Companion report 😊"}
             </p>
           </div>
@@ -235,23 +233,15 @@ Disclaimer: These insights are AI-generated for educational and tracking support
 
       {/* Action bar */}
       <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
-        <Alert className="border-white/20 bg-white/10 flex-1">
-          <Stethoscope className="h-4 w-4 text-white" />
-          <AlertDescription className="text-slate-100">
-            {insights.source === 'ai'
-              ? 'AI analysis grounded in the HidroAlly knowledge base and your logged history. Associations shown here are possible links, not proven causes. Medication or diagnostic conclusions must be confirmed by your clinician.'
-              : 'Offline clinical engine (fallback): the AI analysis was unavailable, so this report was built from HidroAlly\'s built-in rules. Associations are possible links, not proven causes; confirm medication or diagnostic questions with your clinician.'}
-          </AlertDescription>
-        </Alert>
-        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+        <div className="flex flex-wrap gap-3 w-full">
           <Button
             type="button"
             variant={activeKey === 'all' && isSpeaking ? 'default' : 'secondary'}
             size="sm"
             onClick={() => toggle(fullText, 'all')}
             className={cn(
-              "flex-1 sm:flex-none min-h-[44px] rounded-xl",
-              !(activeKey === 'all' && isSpeaking) && "bg-white text-slate-900 border-0 hover:bg-slate-100"
+              "flex-1 sm:flex-none min-h-[56px] rounded-lg",
+              !(activeKey === 'all' && isSpeaking) && "bg-card text-card-foreground border border-border hover:bg-accent"
             )}
             aria-label={activeKey === 'all' && isSpeaking ? 'Stop reading all insights' : 'Listen to all insights'}
           >
@@ -263,10 +253,10 @@ Disclaimer: These insights are AI-generated for educational and tracking support
               <><Volume2 className="h-4 w-4 mr-2" /> Listen to all</>
             )}
           </Button>
-          <Button variant="secondary" size="sm" onClick={handleCopyInsights} className="flex-1 sm:flex-none min-h-[44px] rounded-xl bg-white text-slate-900 border-0 hover:bg-slate-100">
+          <Button variant="secondary" size="sm" onClick={handleCopyInsights} className="flex-1 sm:flex-none min-h-[56px] rounded-lg bg-card text-card-foreground border border-border hover:bg-accent">
             <Copy className="h-4 w-4 mr-2" /> Copy
           </Button>
-          <Button variant="secondary" size="sm" onClick={handleDownloadPDF} className="flex-1 sm:flex-none min-h-[44px] rounded-xl bg-white text-slate-900 border-0 hover:bg-slate-100">
+          <Button variant="secondary" size="sm" onClick={handleDownloadPDF} className="flex-1 sm:flex-none min-h-[56px] rounded-lg bg-card text-card-foreground border border-border hover:bg-accent">
             <Download className="h-4 w-4 mr-2" /> Download
           </Button>
         </div>
@@ -275,37 +265,36 @@ Disclaimer: These insights are AI-generated for educational and tracking support
       {/* Dry Day Metrics Row */}
       {insights.isDryDay && insights.dryDayMetrics && (
         <div className="grid grid-cols-3 gap-3 mb-4">
-          <Card className="border-none bg-blue-50/50 shadow-sm">
+          <Card className="report-relief bg-card shadow-sm">
             <CardContent className="p-3 text-center">
-              <p className="text-xs text-blue-600 font-bold uppercase tracking-wider mb-1">Current Streak</p>
-              <p className="text-xl font-black text-blue-900">{insights.dryDayMetrics.currentStreak} Days</p>
+              <p className="text-xs report-label font-bold uppercase tracking-wider mb-1">Current Streak</p>
+              <p className="text-xl font-black report-label">{insights.dryDayMetrics.currentStreak} Days</p>
             </CardContent>
           </Card>
-          <Card className="border-none bg-emerald-50/50 shadow-sm">
+          <Card className="report-clinical bg-card shadow-sm">
             <CardContent className="p-3 text-center">
-              <p className="text-xs text-emerald-600 font-bold uppercase tracking-wider mb-1">7-Day Control</p>
-              <p className="text-xl font-black text-emerald-900">{insights.dryDayMetrics.dryDaysLast7} / 7</p>
+              <p className="text-xs report-label font-bold uppercase tracking-wider mb-1">7-Day Control</p>
+              <p className="text-xl font-black report-label">{insights.dryDayMetrics.dryDaysLast7} / 7</p>
             </CardContent>
           </Card>
-          <Card className="border-none bg-purple-50/50 shadow-sm">
+          <Card className="report-medical bg-card shadow-sm">
             <CardContent className="p-3 text-center">
-              <p className="text-xs text-purple-600 font-bold uppercase tracking-wider mb-1">30-Day Total</p>
-              <p className="text-xl font-black text-purple-900">{insights.dryDayMetrics.monthlyDryTotal}</p>
+              <p className="text-xs report-label font-bold uppercase tracking-wider mb-1">30-Day Total</p>
+              <p className="text-xl font-black report-label">{insights.dryDayMetrics.monthlyDryTotal}</p>
             </CardContent>
           </Card>
         </div>
       )}
 
       {/* Clinical Analysis */}
-      <Card className="border-l-4 border-l-blue-500 bg-blue-50/40">
+      <Card className="report-section report-clinical border-l-4 bg-card">
         <CardHeader>
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center space-x-2">
-              <Stethoscope className="h-5 w-5 text-blue-600" />
-              <CardTitle className="text-blue-800">{insights.isDryDay ? 'Dry Day Insights' : 'Clinical Analysis'}</CardTitle>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start gap-2 min-w-0">
+              <Stethoscope className="h-5 w-5 report-label shrink-0 mt-1" />
+              <CardTitle className="report-label">{insights.isDryDay ? 'Dry Day Insights' : 'Clinical Analysis'}</CardTitle>
             </div>
             <div className="flex items-center gap-2">
-              <Badge variant="outline" className="text-[10px] sm:text-xs whitespace-nowrap">{insights.source === 'ai' ? 'AI analysis' : 'Offline engine'}</Badge>
               <ListenButton
                 text={`Clinical analysis. ${insights.clinicalAnalysis}`}
                 sectionKey="clinical"
@@ -321,10 +310,10 @@ Disclaimer: These insights are AI-generated for educational and tracking support
             const head = lines.filter(l => !/^\s*[•\-]\s+/.test(l)).join(' ');
             return (
               <div key={pi} className="space-y-2">
-                {head && <p className={cn('leading-relaxed text-slate-700', bullets.length && 'font-semibold text-indigo-800')}>{head}</p>}
+                {head && <p className={cn('leading-relaxed report-text', bullets.length && 'font-semibold')}>{head}</p>}
                 {bullets.length > 0 && (
                   <ul className="space-y-2">
-                    {bullets.map((l, li) => <BulletItem key={li} tone="blue" text={l.replace(/^\s*[•\-]\s+/, '')} />)}
+                    {bullets.map((l, li) => <BulletItem key={li} tone="green" text={l.replace(/^\s*[•\-]\s+/, '')} />)}
                   </ul>
                 )}
               </div>
@@ -334,12 +323,12 @@ Disclaimer: These insights are AI-generated for educational and tracking support
       </Card>
 
       {/* Immediate Relief */}
-      <Card className="border-l-4 border-l-emerald-500 bg-emerald-50/40">
+      <Card className="report-section report-relief border-l-4 bg-card">
         <CardHeader>
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center space-x-2">
-              <Heart className="h-5 w-5 text-green-600" />
-              <CardTitle className="text-emerald-800">{insights.isDryDay ? 'Barrier Care & Skin Protocol' : 'Immediate Relief Strategies'}</CardTitle>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start gap-2 min-w-0">
+              <Heart className="h-5 w-5 report-label shrink-0 mt-1" />
+              <CardTitle className="report-label">{insights.isDryDay ? 'Barrier Care & Skin Protocol' : 'Immediate Relief Strategies'}</CardTitle>
             </div>
             <ListenButton
               text={listify('Immediate relief strategies', insights.immediateRelief)}
@@ -352,7 +341,7 @@ Disclaimer: These insights are AI-generated for educational and tracking support
         <CardContent>
           <ul className="space-y-3">
             {insights.immediateRelief.map((strategy, index) => (
-              <BulletItem key={index} tone="green" text={strategy} />
+              <BulletItem key={index} tone="blue" text={strategy} />
             ))}
           </ul>
         </CardContent>
@@ -361,12 +350,12 @@ Disclaimer: These insights are AI-generated for educational and tracking support
       {!insights.isDryDay && (
       <>
       {/* Lifestyle Modifications */}
-      <Card className="border-l-4 border-l-amber-500 bg-amber-50/40">
+      <Card className="report-section report-lifestyle border-l-4 bg-card">
         <CardHeader>
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center space-x-2">
-              <Lightbulb className="h-5 w-5 text-orange-600" />
-              <CardTitle className="text-amber-800">{insights.isDryDay ? 'Environmental & Routine Replication' : 'Lifestyle Modifications'}</CardTitle>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start gap-2 min-w-0">
+              <Lightbulb className="h-5 w-5 report-label shrink-0 mt-1" />
+              <CardTitle className="report-label">{insights.isDryDay ? 'Environmental & Routine Replication' : 'Lifestyle Modifications'}</CardTitle>
             </div>
             <ListenButton
               text={listify('Lifestyle modifications', insights.lifestyleModifications)}
@@ -386,12 +375,12 @@ Disclaimer: These insights are AI-generated for educational and tracking support
       </Card>
 
       {/* HidroAlly Care & Specialist Guidance */}
-      <Card className="border-l-4 border-l-rose-500 bg-rose-50/40">
+      <Card className="report-section report-medical border-l-4 bg-card">
         <CardHeader>
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center space-x-2">
-              <AlertCircle className="h-5 w-5 text-red-600" />
-              <CardTitle>HidroAlly Care & Specialist Guidance</CardTitle>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start gap-2 min-w-0">
+              <AlertCircle className="h-5 w-5 report-label shrink-0 mt-1" />
+              <CardTitle className="report-label">HidroAlly Care & Specialist Guidance</CardTitle>
             </div>
             <ListenButton
               text={`HidroAlly care & specialist guidance. ${insights.medicalAttention}`}
@@ -401,7 +390,7 @@ Disclaimer: These insights are AI-generated for educational and tracking support
           </div>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground whitespace-pre-wrap">{insights.medicalAttention}</p>
+          <p className="report-text leading-relaxed whitespace-pre-wrap">{insights.medicalAttention}</p>
         </CardContent>
       </Card>
 
@@ -411,15 +400,15 @@ Disclaimer: These insights are AI-generated for educational and tracking support
 
       {/* HidroAlly CTA */}
       {insights.cta && (
-        <Card className="border-2 border-violet-200 bg-violet-50">
+        <Card className="border border-border bg-card">
           <CardContent className="pt-6">
             <div className="flex flex-col items-center text-center gap-4">
-              <p className="text-sm text-gray-700 leading-relaxed font-medium italic">
+              <p className="text-sm text-card-foreground leading-relaxed font-medium italic">
                 {insights.cta}
               </p>
               <Button
                 onClick={handleContinueToChat}
-                className="bg-violet-600 hover:bg-violet-700 text-white rounded-xl px-8"
+                className="min-h-[56px] rounded-lg px-8"
               >
                 Continue in HidroAlly Chat
               </Button>

@@ -1,2 +1,3 @@
 - Post-login routing goes only through src/utils/onboardingStatus.ts resolvePostLoginRoute; network/profile errors route to /home, never to setup — prevents returning users being forced through onboarding again.
 - Android native code lives in native/android/ and is copied into the generated Capacitor android/ project by .github/workflows/build-android.yml — android/ is not committed, so CI regenerates it each build.
+- Episode AI reports call Google Gemini directly in generate-episode-insights using server-only Google credentials; history is user-scoped and Knowledge Base retrieval must not depend on the AI Gateway, so workspace key changes cannot break this path.
