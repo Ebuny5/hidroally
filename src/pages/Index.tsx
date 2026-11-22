@@ -362,26 +362,6 @@ const HidroAllyLanding = () => {
         margin-left: auto;
         margin-right: auto;
       }
-      .trust-badge {
-        margin-left: auto;
-        margin-right: auto;
-      }
-    }
-
-    .trust-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      background: rgba(167,139,250,0.15);
-      border: 1px solid rgba(167,139,250,0.3);
-      padding: 12px 24px;
-      border-radius: 30px;
-      font-size: 16px;
-      font-weight: 600;
-      color: #e9d5ff;
-      margin-top: 40px;
-      margin-bottom: 24px;
-      letter-spacing: 0.5px;
     }
 
     .hero-title {
@@ -1302,12 +1282,6 @@ const HidroAllyLanding = () => {
         padding-top: 40px;
       }
 
-      .trust-badge {
-        font-size: 14px;
-        padding: 10px 20px;
-        margin-bottom: 20px;
-      }
-
       .hero-title {
         font-size: clamp(2rem, 7vw, 3rem);
         word-wrap: break-word;
@@ -1430,10 +1404,6 @@ const HidroAllyLanding = () => {
       <section className="section-hero">
         <div className="hero-grid">
           <div>
-            <div className="trust-badge">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
-              TRUSTED BY 12,000+ PEOPLE
-            </div>
             <h1 className="hero-title">
               <span className="title-line-1">Master your</span><br />
               <span className="title-line-2">hyperhidrosis</span>
