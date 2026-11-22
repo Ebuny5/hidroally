@@ -1279,7 +1279,8 @@ const HidroAllyLanding = () => {
       }
 
       .section-hero {
-        padding-top: 40px;
+        padding-top: 112px;
+        min-height: auto;
       }
 
       .hero-title {

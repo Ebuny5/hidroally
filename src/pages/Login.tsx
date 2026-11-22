@@ -76,7 +76,7 @@ const Login = () => {
 
   return (
     <AppLayout isAuthenticated={false}>
-      <div className="flex justify-center items-center min-h-[calc(100vh-100px)] bg-[#E9E4FA] p-4">
+      <div className="flex justify-center items-center min-h-[calc(100vh-100px)] bg-gradient-to-br from-[hsl(262,60%,14%)] via-[hsl(258,55%,22%)] to-[hsl(285,50%,24%)] p-4 py-8">
         <Card className="w-full max-w-md bg-white border-0 shadow-lg relative pb-6">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold">Login</CardTitle>

@@ -7,7 +7,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import { LogOut, User, Settings, MessageSquare } from "lucide-react";
@@ -32,6 +32,7 @@ const getAvatarGradient = (initials: string) => {
 
 const Header: React.FC<HeaderProps> = ({ isAuthenticated }) => {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const { user, signOut } = useAuth();
   const { profile } = useProfile();
 
@@ -139,18 +140,18 @@ const Header: React.FC<HeaderProps> = ({ isAuthenticated }) => {
               </DropdownMenu>
             ) : (
               <div className="auth-buttons-container">
-                <a
+                {pathname !== "/login" && <a
                   onClick={() => navigate("/login")}
                   className="nav-btn btn-login cursor-pointer"
                 >
                   Login
-                </a>
-                <a
+                </a>}
+                {pathname !== "/register" && <a
                   onClick={() => navigate("/register")}
                   className="nav-btn btn-signup cursor-pointer"
                 >
                   Sign Up
-                </a>
+                </a>}
               </div>
             )}
           </div>

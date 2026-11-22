@@ -116,9 +116,12 @@ const AuthCallback = () => {
     <AppLayout isAuthenticated={false}>
       <div className="min-h-[80vh] flex items-center justify-center">
         <div className="flex flex-col items-center space-y-3 text-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
-          <p className="text-sm text-muted-foreground">
-            {processingOAuth ? "Processing sign-in…" : "Finalizing sign-in… Please wait."}
+          <div className="relative flex items-center justify-center">
+            <div className="absolute w-20 h-20 bg-primary/30 rounded-full blur-xl animate-pulse" />
+            <img src="/sweatsmart-logo.png" alt="HidroAlly" className="w-16 h-16 relative z-10 animate-bounce object-contain" />
+          </div>
+          <p className="text-sm font-semibold text-primary tracking-wide animate-pulse">
+            {processingOAuth ? "Signing you in to HidroAlly…" : "Getting HidroAlly ready…"}
           </p>
           {error_description ? (
             <p className="text-xs text-destructive max-w-sm">
