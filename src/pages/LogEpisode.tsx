@@ -823,7 +823,32 @@ const LogEpisode = () => {
           }
         }
 
-        setAiInsights(insights);
+        let finalInsights: any = { ...insights, source: 'fallback' };
+        if (!isDryDay && user?.id) {
+          try {
+            const aiCall = supabase.functions.invoke('generate-episode-insights', {
+              body: {
+                severity: finalSeverity,
+                bodyAreas: finalBodyAreas,
+                triggers: triggerData,
+                notes: finalNotes,
+                isDryDay: false,
+                episodeId: savedEpId,
+                userName: profile?.display_name || undefined,
+                recentRelief: (insights as any)?.immediateRelief || [],
+                profile: { declaredType, onsetAge, familyHistory, nightSweats, onMedication, conditions },
+              },
+            });
+            const timeout = new Promise<null>(r => setTimeout(() => r(null), 25000));
+            const res: any = await Promise.race([aiCall, timeout]);
+            if (res && !res.error && res.data?.insights?.clinicalAnalysis) {
+              finalInsights = { ...insights, ...res.data.insights, source: 'ai' };
+            }
+          } catch (aiErr) {
+            console.warn('AI analysis unavailable, using offline engine:', aiErr);
+          }
+        }
+        setAiInsights(finalInsights);
         toast(
           isDryDay
             ? { title: "Dry day recorded ✨", description: "Zero sweating logged for this period." }

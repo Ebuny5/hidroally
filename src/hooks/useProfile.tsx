@@ -7,8 +7,17 @@ const PROFILE_UPDATED_EVENT = 'sweatsmart:profile-updated';
 
 export const useProfile = () => {
   const { user } = useAuth();
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const cacheKey = user ? `hidroally:profile:${user.id}` : '';
+  const readCache = (): Profile | null => {
+    if (!cacheKey) return null;
+    try { const r = localStorage.getItem(cacheKey); return r ? JSON.parse(r) : null; } catch { return null; }
+  };
+  const writeCache = (p: Profile | null) => {
+    if (!cacheKey || !p) return;
+    try { localStorage.setItem(cacheKey, JSON.stringify(p)); } catch { /* ignore */ }
+  };
+  const [profile, setProfile] = useState<Profile | null>(() => readCache());
+  const [loading, setLoading] = useState(() => !readCache());
 
   const fetchProfile = async () => {
     if (!user) {
@@ -27,13 +36,14 @@ export const useProfile = () => {
 
       if (error) {
         console.error('Error fetching profile:', error);
-        setProfile(null);
+        setProfile(prev => prev ?? readCache());
       } else {
         setProfile(data as unknown as Profile);
+        writeCache(data as unknown as Profile);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
-      setProfile(null);
+      setProfile(prev => prev ?? readCache());
     } finally {
       setLoading(false);
     }
@@ -52,7 +62,14 @@ export const useProfile = () => {
         throw error;
       }
 
-      setProfile(prev => prev ? { ...prev, ...updates } : null);
+      setProfile(prev => {
+        const next = prev ? { ...prev, ...updates } : null;
+        writeCache(next);
+        return next;
+      });
+      if (typeof updates.display_name === 'string' && updates.display_name.trim()) {
+        void supabase.auth.updateUser({ data: { display_name: updates.display_name.trim(), full_name: updates.display_name.trim() } });
+      }
       // Notify other useProfile instances (e.g. Header) to refresh
       window.dispatchEvent(new CustomEvent(PROFILE_UPDATED_EVENT));
       return true;
@@ -63,6 +80,8 @@ export const useProfile = () => {
   };
 
   useEffect(() => {
+    const cached = readCache();
+    if (cached) { setProfile(cached); setLoading(false); }
     fetchProfile();
   }, [user]);
 

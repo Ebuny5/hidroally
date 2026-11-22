@@ -78,13 +78,18 @@ const AIGeneratedInsights: React.FC<AIInsightsProps> = ({ insights }) => {
     );
   };
 
-  const BulletItem = ({ text }: { text: string }) => {
+  const BulletItem = ({ text, tone = 'blue' }: { text: string; tone?: 'blue' | 'green' | 'amber' }) => {
     const m = text.match(/^(For your [^:]{1,60}|[A-Z][^:.]{1,50}):\s+(.*)$/s);
+    const T = {
+      blue:  { dot: 'bg-blue-500',    head: 'text-blue-800',    body: 'text-slate-700' },
+      green: { dot: 'bg-emerald-500', head: 'text-emerald-800', body: 'text-slate-700' },
+      amber: { dot: 'bg-amber-500',   head: 'text-amber-800',   body: 'text-slate-700' },
+    }[tone];
     return (
-      <li className="flex items-start gap-3">
-        <span className="mt-2 h-1.5 w-1.5 rounded-full bg-primary shrink-0" aria-hidden />
-        <span className="text-muted-foreground leading-relaxed">
-          {m ? <><strong className="text-foreground font-semibold">{m[1]}:</strong> {m[2]}</> : text}
+      <li className="grid grid-cols-[0.75rem_1fr] gap-x-3 items-start">
+        <span className={cn('mt-[0.55rem] h-2 w-2 rounded-full', T.dot)} aria-hidden />
+        <span className={cn('leading-relaxed', T.body)}>
+          {m ? <><strong className={cn('font-semibold', T.head)}>{m[1]}:</strong> {m[2]}</> : text}
         </span>
       </li>
     );
@@ -146,7 +151,7 @@ Disclaimer: These insights are AI-generated for educational and tracking support
 
       const addSection = (title: string, content: string | string[]) => {
         title = cleanTextForPdf(title);
-        content = Array.isArray(content) ? content.map(cleanTextForPdf) : cleanTextForPdf(content);
+        if (Array.isArray(content)) content = content.map(cleanTextForPdf);
         if (y > 250) { doc.addPage(); y = 20; }
         doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
@@ -155,12 +160,17 @@ Disclaimer: These insights are AI-generated for educational and tracking support
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
         const items = Array.isArray(content) ? content : [content];
-        items.forEach((item, i) => {
-          const prefix = Array.isArray(content) ? `${i + 1}. ` : '';
-          const lines = doc.splitTextToSize(prefix + item, maxWidth - (Array.isArray(content) ? 5 : 0));
-          lines.forEach((line: string) => {
+        const rows: { marker: string; text: string }[] = Array.isArray(content)
+          ? content.map((t, i) => ({ marker: `${i + 1}.`, text: cleanTextForPdf(t) }))
+          : String(content).split('\n').map(l => l.trim()).filter(Boolean).map(l =>
+              /^[•\-]\s+/.test(l) ? { marker: '-', text: cleanTextForPdf(l.replace(/^[•\-]\s+/, '')) } : { marker: '', text: cleanTextForPdf(l) });
+        rows.forEach(({ marker, text }) => {
+          const indent = marker ? 7 : 0;
+          const lines = doc.splitTextToSize(text, maxWidth - indent);
+          lines.forEach((line: string, li: number) => {
             if (y > 270) { doc.addPage(); y = 20; }
-            doc.text(line, margin + (Array.isArray(content) ? 5 : 0), y);
+            if (marker && li === 0) doc.text(marker, margin, y);
+            doc.text(line, margin + indent, y);
             y += 5;
           });
           y += 3;
@@ -287,12 +297,12 @@ Disclaimer: These insights are AI-generated for educational and tracking support
       )}
 
       {/* Clinical Analysis */}
-      <Card className="border-l-4 border-l-blue-500">
+      <Card className="border-l-4 border-l-blue-500 bg-blue-50/40">
         <CardHeader>
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center space-x-2">
               <Stethoscope className="h-5 w-5 text-blue-600" />
-              <CardTitle>{insights.isDryDay ? 'Dry Day Insights' : 'Clinical Analysis'}</CardTitle>
+              <CardTitle className="text-blue-800">{insights.isDryDay ? 'Dry Day Insights' : 'Clinical Analysis'}</CardTitle>
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="text-[10px] sm:text-xs whitespace-nowrap">{insights.source === 'ai' ? 'AI analysis' : 'Offline engine'}</Badge>
@@ -311,10 +321,10 @@ Disclaimer: These insights are AI-generated for educational and tracking support
             const head = lines.filter(l => !/^\s*[•\-]\s+/.test(l)).join(' ');
             return (
               <div key={pi} className="space-y-2">
-                {head && <p className={cn('text-muted-foreground leading-relaxed', bullets.length && 'font-semibold text-foreground')}>{head}</p>}
+                {head && <p className={cn('leading-relaxed text-slate-700', bullets.length && 'font-semibold text-indigo-800')}>{head}</p>}
                 {bullets.length > 0 && (
                   <ul className="space-y-2">
-                    {bullets.map((l, li) => <BulletItem key={li} text={l.replace(/^\s*[•\-]\s+/, '')} />)}
+                    {bullets.map((l, li) => <BulletItem key={li} tone="blue" text={l.replace(/^\s*[•\-]\s+/, '')} />)}
                   </ul>
                 )}
               </div>
@@ -324,12 +334,12 @@ Disclaimer: These insights are AI-generated for educational and tracking support
       </Card>
 
       {/* Immediate Relief */}
-      <Card className="border-l-4 border-l-green-500">
+      <Card className="border-l-4 border-l-emerald-500 bg-emerald-50/40">
         <CardHeader>
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center space-x-2">
               <Heart className="h-5 w-5 text-green-600" />
-              <CardTitle>{insights.isDryDay ? 'Barrier Care & Skin Protocol' : 'Immediate Relief Strategies'}</CardTitle>
+              <CardTitle className="text-emerald-800">{insights.isDryDay ? 'Barrier Care & Skin Protocol' : 'Immediate Relief Strategies'}</CardTitle>
             </div>
             <ListenButton
               text={listify('Immediate relief strategies', insights.immediateRelief)}
@@ -342,7 +352,7 @@ Disclaimer: These insights are AI-generated for educational and tracking support
         <CardContent>
           <ul className="space-y-3">
             {insights.immediateRelief.map((strategy, index) => (
-              <BulletItem key={index} text={strategy} />
+              <BulletItem key={index} tone="green" text={strategy} />
             ))}
           </ul>
         </CardContent>
@@ -351,12 +361,12 @@ Disclaimer: These insights are AI-generated for educational and tracking support
       {!insights.isDryDay && (
       <>
       {/* Lifestyle Modifications */}
-      <Card className="border-l-4 border-l-orange-500">
+      <Card className="border-l-4 border-l-amber-500 bg-amber-50/40">
         <CardHeader>
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center space-x-2">
               <Lightbulb className="h-5 w-5 text-orange-600" />
-              <CardTitle>{insights.isDryDay ? 'Environmental & Routine Replication' : 'Lifestyle Modifications'}</CardTitle>
+              <CardTitle className="text-amber-800">{insights.isDryDay ? 'Environmental & Routine Replication' : 'Lifestyle Modifications'}</CardTitle>
             </div>
             <ListenButton
               text={listify('Lifestyle modifications', insights.lifestyleModifications)}
@@ -369,14 +379,14 @@ Disclaimer: These insights are AI-generated for educational and tracking support
         <CardContent>
           <ul className="space-y-3">
             {insights.lifestyleModifications.map((modification, index) => (
-              <BulletItem key={index} text={modification} />
+              <BulletItem key={index} tone="amber" text={modification} />
             ))}
           </ul>
         </CardContent>
       </Card>
 
       {/* HidroAlly Care & Specialist Guidance */}
-      <Card className="border-l-4 border-l-red-500">
+      <Card className="border-l-4 border-l-rose-500 bg-rose-50/40">
         <CardHeader>
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center space-x-2">

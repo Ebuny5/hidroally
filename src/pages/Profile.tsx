@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useProfile } from "@/hooks/useProfile";
 import { useEpisodes } from "@/hooks/useEpisodes";
+import { buildInsightsViewModel } from "@/features/insights/insightsAnalytics";
 import { consistency } from "@/features/insights/analyticsSeries";
 import { downloadClinicalReport, patientFromProfile, declaredTypeFrom } from "@/features/insights/clinicalReportPdf";
 import { FileText } from "lucide-react";
@@ -294,11 +295,12 @@ const Profile = () => {
   if (profileLoading) {
     return (
       <AppLayout>
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="flex flex-col items-center gap-3">
-            <div className="animate-spin rounded-full h-10 w-10 border-4 border-blue-200 border-t-blue-500" />
-            <p className="text-sm text-gray-400">Loading your profile…</p>
+        <div className="min-h-[70vh] flex flex-col items-center justify-center bg-gradient-to-br from-violet-50 to-pink-50">
+          <div className="relative flex items-center justify-center">
+            <div className="absolute w-20 h-20 bg-purple-400/30 rounded-full blur-xl animate-pulse" />
+            <img src="/sweatsmart-logo.png" alt="HidroAlly" className="w-16 h-16 relative z-10 animate-bounce object-contain drop-shadow-[0_0_12px_rgba(168,85,247,0.5)]" />
           </div>
+          <p className="mt-4 text-sm font-semibold text-purple-600 tracking-wide animate-pulse">Loading HidroAlly...</p>
         </div>
       </AppLayout>
     );
@@ -623,9 +625,10 @@ const Profile = () => {
               ) : (
                 <div className="space-y-4 pt-2">
                   {(() => {
-                    const patReading = (profile as any)?.pattern_reading;
-                    const patConf = (profile as any)?.pattern_confidence || "none";
-                    const patEpCount = (profile as any)?.pattern_episode_count || 0;
+                    const livePattern = buildInsightsViewModel(episodes || [], {}).pattern;
+                    const patReading = livePattern.lean;
+                    const patConf = livePattern.confidence;
+                    const patEpCount = flareEpisodes.length;
 
                     let readingText = "Keep logging, a reading unlocks at 4 episodes";
                     if (patConf !== "none") {
@@ -666,8 +669,8 @@ const Profile = () => {
 
                   {/* Suggestion banner if Diagnosis is Unsure and Pattern Reading is primary_like with moderate/strong confidence */}
                   {((profileData.diagnosis_type === "Unsure" || (profile as any)?.diagnosis_type === "Unsure") &&
-                    (profile as any)?.pattern_reading === "primary_like" &&
-                    ["moderate", "strong"].includes((profile as any)?.pattern_confidence)) && (
+                    buildInsightsViewModel(episodes || [], {}).pattern.lean === "primary_like" &&
+                    ["moderate", "strong"].includes(buildInsightsViewModel(episodes || [], {}).pattern.confidence)) && (
                     <div className="mt-4 p-4 rounded-2xl bg-violet-50 border border-violet-200 text-violet-900 space-y-2">
                       <p className="text-xs font-semibold">
                         Your logs resemble primary focal hyperhidrosis. Update your profile?

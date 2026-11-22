@@ -24,6 +24,7 @@ import SeveritySelector from "@/components/episode/SeveritySelector";
 import { SeverityLevel } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { nameFromAuth } from "@/utils/onboardingStatus";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -275,7 +276,7 @@ const WarriorLaunchpad = () => {
   const [quickHDSS, setQuickHDSS] = useState<SeverityLevel | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  const displayName = profile?.display_name || user?.email?.split("@")[0] || "Warrior";
+  const displayName = profile?.display_name || (user ? nameFromAuth(user) : null) || "Warrior";
   const firstName   = displayName.split(" ")[0];
   const greeting    = getGreeting();
   const today       = new Date().toLocaleDateString("en-GB", {
