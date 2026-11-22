@@ -113,15 +113,6 @@ const menuItems = [
     iconBg: "bg-yellow-100",
   },
   {
-    path: "/community",
-    icon: Users,
-    label: "Community",
-    activeGradient: "from-emerald-400 to-teal-500",
-    activeBg: "bg-emerald-50",
-    activeText: "text-emerald-700",
-    iconBg: "bg-emerald-100",
-  },
-  {
     path: "/survey",
     icon: ClipboardList,
     label: "Survey",

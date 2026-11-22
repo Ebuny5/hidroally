@@ -302,7 +302,7 @@ export default function NewIndex() {
               <p className="text-gray-600 text-center mb-4">
                 Connect with others, share experiences, and find real-time support from peers who understand what you're going through.
               </p>
-              <button onClick={() => navigate('/community')} className="w-full py-2 text-green-600 font-medium hover:bg-green-50 rounded-lg transition">Join Community</button>
+              <button onClick={() => navigate('/home')} className="w-full py-2 text-green-600 font-medium hover:bg-green-50 rounded-lg transition">Join Community</button>
             </div>
           </div>
         </div>

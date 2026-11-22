@@ -26,7 +26,6 @@ import History from "./pages/History";
 import EpisodeDetail from "./pages/EpisodeDetail";
 import Profile from "./pages/Profile";
 import Insights from "./pages/Insights";
-import Community from "./pages/Community";
 import Settings from "./pages/Settings";
 import Achievements from "./pages/Achievements";
 import NotFound from "./pages/NotFound";
@@ -199,11 +198,6 @@ const AppRoutes = () => {
     <Route path="/insights" element={
 
         <Insights />
-
-    } />
-    <Route path="/community" element={
-
-        <Community />
 
     } />
     <Route path="/settings" element={

@@ -66,7 +66,6 @@ const moreItems = [
   { path: "/specialist-radar", icon: MapPin,       label: "Specialist", color: "text-teal-600",    bg: "bg-teal-50"    },
   { path: "/hidro-ally",     icon: Sparkles,         label: "HidroAlly",  color: "text-amber-600",   bg: "bg-amber-50"   },
   { path: "/history",      icon: History,          label: "History",    color: "text-violet-600",  bg: "bg-violet-50"  },
-  { path: "/community",    icon: Users,            label: "Community",  color: "text-emerald-600", bg: "bg-emerald-50" },
   { path: "/survey",       icon: ClipboardList,    label: "Survey",     color: "text-violet-600",  bg: "bg-violet-50"  },
   { path: "/feedback",     icon: Heart,            label: "Feedback",   color: "text-blue-600",    bg: "bg-blue-50"    },
   { path: "/faqs",         icon: HelpCircle,       label: "FAQs",       color: "text-rose-600",    bg: "bg-rose-50"    },

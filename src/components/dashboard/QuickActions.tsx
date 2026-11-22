@@ -498,15 +498,7 @@ const WarriorLaunchpad = () => {
 
         </div>
 
-        {/* Community snippet */}
         <div>
-          <div className="flex items-center justify-between mb-2 px-1">
-            <p className="text-xs font-black text-gray-600 uppercase tracking-wide">🤝 Warrior Community</p>
-            <button onClick={() => navigate("/community")} className="text-[10px] font-bold text-violet-500 hover:text-violet-700 flex items-center gap-1">
-              Join <ChevronRight className="h-3 w-3" />
-            </button>
-          </div>
-
           {isMissedCheckIn && (
             <div className="mb-3 bg-amber-50 rounded-2xl border border-amber-200 p-4 flex items-start gap-3 shadow-sm text-left">
               <div className="text-xl shrink-0">⏰</div>
@@ -519,17 +511,6 @@ const WarriorLaunchpad = () => {
             </div>
           )}
 
-          <button
-            onClick={() => navigate("/community")}
-            className="w-full bg-white rounded-2xl border border-purple-100 p-4 flex items-start gap-3 shadow-sm hover:shadow-md transition-all text-left"
-          >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-100 to-pink-100 flex items-center justify-center text-xl shrink-0">💬</div>
-            <div className="flex-1 min-w-0">
-              <span className="inline-block text-[10px] font-black text-violet-600 bg-violet-50 px-2 py-0.5 rounded-full mb-1">{tip.tag}</span>
-              <p className="text-sm font-semibold text-gray-800 leading-snug">{tip.text}</p>
-              <p className="text-[10px] text-gray-400 mt-1">Tap to join the conversation →</p>
-            </div>
-          </button>
 
         <div className="mt-3 rounded-2xl p-4 border" style={{ backgroundColor: "#f5f4f7", borderColor: "#e8e6f0" }}>
             <p className="text-xs font-black text-violet-700 mb-1">💡 Did you know?</p>
