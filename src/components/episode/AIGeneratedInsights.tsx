@@ -339,11 +339,18 @@ Disclaimer: These insights are AI-generated for educational and tracking support
           <CardDescription>{insights.isDryDay ? 'Techniques for skin recovery and barrier protection' : 'Here are immediate, location-specific actions you can take right now:'}</CardDescription>
         </CardHeader>
         <CardContent>
-          <ul className="space-y-3">
-            {insights.immediateRelief.map((strategy, index) => (
-              <BulletItem key={index} tone="blue" text={strategy} />
+          <div className="space-y-5">
+            {groupRelief(insights.immediateRelief).map((group, gi) => (
+              <div key={gi}>
+                {group.heading && <p className="report-label font-bold mb-2">{group.heading}</p>}
+                <ul className="space-y-3">
+                  {group.items.map((strategy, index) => (
+                    <BulletItem key={index} tone="blue" text={strategy} />
+                  ))}
+                </ul>
+              </div>
             ))}
-          </ul>
+          </div>
         </CardContent>
       </Card>
 
@@ -421,3 +428,18 @@ Disclaimer: These insights are AI-generated for educational and tracking support
 };
 
 export default AIGeneratedInsights;
+
+function groupRelief(items: string[]): { heading: string; items: string[] }[] {
+  const groups: { heading: string; items: string[] }[] = [];
+  for (const raw of items) {
+    const m = raw.match(/^\s*(For (?:your )?[^:]{1,40}):\s*(.+)$/is);
+    const heading = m ? m[1].trim().replace(/^for/i, 'For') + ':' : '';
+    const text = m ? m[2].trim() : raw;
+    const last = groups[groups.length - 1];
+    const existing = groups.find((g) => g.heading && g.heading.toLowerCase() === heading.toLowerCase());
+    if (heading && existing) existing.items.push(text);
+    else if (!heading && last && !last.heading) last.items.push(text);
+    else groups.push({ heading, items: [text] });
+  }
+  return groups;
+}

@@ -827,6 +827,15 @@ const LogEpisode = () => {
         let finalInsights: any = { ...insights, source: 'fallback' };
         if (!isDryDay && user?.id) {
           try {
+            const location = await new Promise<{ lat: number; lon: number } | undefined>((resolve) => {
+              if (!navigator.geolocation) return resolve(undefined);
+              const timer = setTimeout(() => resolve(undefined), 3000);
+              navigator.geolocation.getCurrentPosition(
+                (pos) => { clearTimeout(timer); resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }); },
+                () => { clearTimeout(timer); resolve(undefined); },
+                { maximumAge: 30 * 60 * 1000, timeout: 3000 },
+              );
+            });
             const aiCall = supabase.functions.invoke('generate-episode-insights', {
               body: {
                 severity: finalSeverity,
@@ -837,6 +846,7 @@ const LogEpisode = () => {
                 episodeId: savedEpId,
                 userName: profile?.display_name || undefined,
                 recentRelief: insights.immediateRelief || [],
+                location,
                 profile: { declaredType, onsetAge, familyHistory, nightSweats, onMedication, conditions },
               },
             });
@@ -1468,20 +1478,20 @@ const LogEpisode = () => {
           )}
 
           {/* ── ACTIONS BAR ─────────────────────────────────────────────────── */}
-          <div className="pt-2 pb-6 space-y-3">
+          <div className="mt-2 mb-6 p-4 rounded-3xl bg-violet-100 space-y-3">
             <button
               type="button"
               onClick={() => handleSubmit()}
               disabled={isSubmitting || (!isDryDay && severity === null)}
               className={cn(
-                "w-full py-4 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-indigo-800 hover:opacity-95 text-white font-bold transition-all shadow-lg shadow-indigo-200 text-sm flex items-center justify-center gap-2",
-                isSubmitting && "opacity-75 cursor-not-allowed"
+                "relative overflow-hidden w-full py-4 rounded-2xl bg-gradient-to-r from-violet-700 via-purple-800 to-violet-900 hover:opacity-95 text-white font-bold transition-all shadow-lg shadow-violet-300 text-sm flex items-center justify-center gap-2",
+                isSubmitting && "cursor-wait animate-beam-glow"
               )}
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Storing Clinical Metrics...
+                  <span aria-hidden className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-beam-sweep" />
+                  <span className="relative">Storing Clinical Metrics...</span>
                 </>
               ) : (
                 <>
@@ -1489,7 +1499,7 @@ const LogEpisode = () => {
                 </>
               )}
             </button>
-            <p className="text-center text-[11px] font-semibold text-slate-400">
+            <p className="text-center text-[11px] font-semibold text-violet-700">
               {episodesThisWeek} total episode{episodesThisWeek !== 1 ? "s" : ""} recorded in the past 7 days
             </p>
           </div>

@@ -200,7 +200,7 @@ export function calculateSweatRiskV2(input: SweatRiskInput): SweatRiskResult {
   // GATEKEEPER 1: Active Rain & Cool Weather
   // If it's actively raining with low UV, we tolerate ambient temp up to 27.5°C before calling it High Risk (ignoring high realFeel due to humidity).
   // If it's not raining, we use a standard cool baseline of < 25.0°C and low UV.
-  if ((isActiveRain && temperature <= 27.5 && uvVal < 2.0) || (!isActiveRain && realFeel < 27)) {
+  if ((isActiveRain && temperature <= 27.5 && uvVal < 2.0) || (!isActiveRain && realFeel < 27 && !(temperature >= 24 && humidity >= 70))) {
     level = 'low';
     message = isActiveRain ? 'Rain-Cooled Environment' : 'Cool Weather Baseline';
     description = isActiveRain
@@ -220,10 +220,12 @@ export function calculateSweatRiskV2(input: SweatRiskInput): SweatRiskResult {
     description = `Feels like ${roundedRealFeel}°C. High ambient humidity (${humidity.toFixed(0)}%) prevents sweat from evaporating naturally during activity.`;
 
   // MODERATE RISK: Warm muggy weather (Temp >= 24°C + Humidity >= 70%) OR RealFeel >= 30°C
-  } else if (realFeel >= 27) {
+  } else if (realFeel >= 27 || (temperature >= 24 && humidity >= 70)) {
     level = 'moderate';
     message = 'Elevated Moisture Load';
-    description = `Feels like ${roundedRealFeel}°C. Ambient moisture slows skin drying. Maintain airflow with fans.`;
+    description = realFeel < 27
+      ? `Feels like ${roundedRealFeel}°C. Humid air (${humidity.toFixed(0)}%) stops sweat evaporating, so skin stays damp and sweating can build. Keep a fan on you and sip cold water.`
+      : `Feels like ${roundedRealFeel}°C. Ambient moisture slows skin drying. Maintain airflow with fans.`;
 
   // FALLBACK: Low Risk
   } else {

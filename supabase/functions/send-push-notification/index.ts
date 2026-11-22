@@ -573,7 +573,7 @@ function calculateSweatRisk(temp: number, humidity: number, uv: number, threshol
   const isActiveRain = weatherId != null && weatherId >= 200 && weatherId < 700;
 
   // GATEKEEPER 1: Active Rain & Cool Weather
-  if ((isActiveRain && temp <= 27.5 && uvVal < 2.0) || (!isActiveRain && realFeel < 27)) {
+  if ((isActiveRain && temp <= 27.5 && uvVal < 2.0) || (!isActiveRain && realFeel < 27 && !(temp >= 24 && humidity >= 70))) {
     return 'low';
   }
 
@@ -588,7 +588,7 @@ function calculateSweatRisk(temp: number, humidity: number, uv: number, threshol
   }
 
   // MODERATE RISK: Warm muggy weather (Temp >= 24°C + Humidity >= 70%) OR RealFeel >= 30°C
-  if (realFeel >= 27) {
+  if (realFeel >= 27 || (temp >= 24 && humidity >= 70)) {
     return 'moderate';
   }
 
