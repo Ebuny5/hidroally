@@ -462,19 +462,6 @@ const WarriorLaunchpad = () => {
 
           {/* 2×2 grid */}
           <div className="grid grid-cols-2 gap-3 mb-3">
-            <button
-              onClick={() => setQuickLogOpen(true)}
-              className="bg-gradient-to-br from-cyan-400 to-teal-500 rounded-2xl p-3 flex flex-col items-start gap-2 shadow-md shadow-teal-200 hover:shadow-lg hover:scale-[1.02] transition-all text-left"
-            >
-              <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-2xl shadow-inner">
-                ⚡
-              </div>
-              <div>
-                <p className="text-white font-black text-xs leading-tight">Quick Capture</p>
-                <p className="text-white/70 text-[10px] leading-tight mt-0.5">log your HDSS level</p>
-              </div>
-            </button>
-
             {[
               { emoji: "🗺️", title: "My Sweat Journey", subtitle: "Full episode history",    gradient: "from-pink-400 to-rose-500",    shadow: "shadow-pink-200",   path: "/history"             },
               { emoji: "🔬", title: "Growth Radar",     subtitle: "Insights & treatment",   gradient: "from-amber-400 to-orange-500", shadow: "shadow-amber-200",  path: "/insights"            },

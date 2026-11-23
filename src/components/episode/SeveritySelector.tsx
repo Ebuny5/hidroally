@@ -100,9 +100,6 @@ const SeveritySelector: React.FC<SeveritySelectorProps> = ({ value, onChange }) 
                 </span>
               )}
               <span className="text-3xl">{lvl.emoji}</span>
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${lvl.badge}`}>
-                {lvl.hdss}
-              </span>
               <p className="font-semibold text-sm text-gray-800 leading-tight">{lvl.label}</p>
             </button>
           );

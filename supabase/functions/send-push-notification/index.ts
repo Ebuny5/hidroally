@@ -998,11 +998,17 @@ serve(async (req) => {
           let uv = 0;
           if (!isNight) {
             try {
-              const uvRes = await fetch(
-                `https://api.openweathermap.org/data/2.5/uvi?lat=${sub.latitude}&lon=${sub.longitude}&appid=${weatherApiKey}`
+              // Use the live current UV (same source as the in-app card). The legacy /uvi
+              // endpoint returns the daily peak, which inflated alerts to UV 11-12.
+              const ocRes = await fetch(
+                `https://api.openweathermap.org/data/3.0/onecall?lat=${sub.latitude}&lon=${sub.longitude}&exclude=minutely,hourly,daily,alerts&units=metric&appid=${weatherApiKey}`
               );
-              const uvData = await uvRes.json();
-              uv = uvData.value || 0;
+              if (ocRes.ok) {
+                const oc = await ocRes.json();
+                uv = typeof oc?.current?.uvi === 'number' ? oc.current.uvi : 0;
+              } else {
+                uv = 0;
+              }
 
               // WMO-style cloud attenuation: UV_eff = UV * (1 - 0.75 * cloudFraction^3.4)
               const cloudFraction = Math.max(0, Math.min(100, clouds)) / 100;
