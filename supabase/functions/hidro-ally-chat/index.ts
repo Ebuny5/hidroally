@@ -322,7 +322,7 @@ serve(async (req) => {
     }
     for (let i = 0; i < messages.length; i++) {
       const m = messages[i];
-      if (!m?.role || !['user', 'assistant', 'system'].includes(m.role)
+      if (!m?.role || !['user', 'assistant'].includes(m.role)
           || typeof m.content !== 'string' || m.content.length > MAX_MSG_LENGTH) {
         return new Response(JSON.stringify({ error: `Invalid message at index ${i}` }), {
           status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },

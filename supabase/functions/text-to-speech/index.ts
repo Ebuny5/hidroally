@@ -1,3 +1,4 @@
+import { getRequestUser } from "../_shared/requireUser.ts";
 // Text-to-speech edge function (Lovable AI Gateway)
 // Accepts: { text: string, voice?: string }
 // Returns: { audio_base64: string, mime: 'audio/mpeg' }
@@ -26,6 +27,10 @@ function toBase64(buffer: ArrayBuffer): string {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  if (!(await getRequestUser(req))) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
 
   try {

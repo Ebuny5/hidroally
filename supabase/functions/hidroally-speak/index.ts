@@ -1,3 +1,4 @@
+import { getRequestUser } from "../_shared/requireUser.ts";
 // HidroAlly-only TTS via Deepgram Aura 2 (REST /v1/speak).
 // Scoped strictly to the HidroAlly chat bubbles. Returns base64 MP3.
 
@@ -13,6 +14,10 @@ const MAX_CHARS = 1900; // Deepgram /v1/speak text limit is 2000 chars
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+
+  if (!(await getRequestUser(req))) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+  }
 
   try {
     if (!DEEPGRAM_KEY) {

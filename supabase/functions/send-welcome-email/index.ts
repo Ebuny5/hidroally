@@ -1,3 +1,4 @@
+import { getRequestUser } from "../_shared/requireUser.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { Resend } from "npm:resend";
 
@@ -88,7 +89,11 @@ serve(async (req) => {
   const authHeader = req.headers.get("authorization");
   const requestHookSecret = req.headers.get("x-hook-secret");
 
-  if (hookSecret && requestHookSecret !== hookSecret && !authHeader) {
+  // Trusted path: database hook with the shared secret. Otherwise the caller must be
+  // signed in, and the email can only go to their own verified address.
+  const isHook = !!hookSecret && requestHookSecret === hookSecret;
+  const caller = isHook ? null : await getRequestUser(req);
+  if (!isHook && !caller?.email) {
     console.error("Unauthorized welcome-email invocation");
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -106,7 +111,9 @@ serve(async (req) => {
     }
 
     // Support batch emails payload for retroactive triggers
-    const emailsList: string[] = Array.isArray(payload?.emails)
+    const emailsList: string[] = !isHook
+      ? [caller!.email!]
+      : Array.isArray(payload?.emails)
       ? payload.emails
       : (payload?.email || payload?.record?.email)
       ? [payload?.email || payload?.record?.email]

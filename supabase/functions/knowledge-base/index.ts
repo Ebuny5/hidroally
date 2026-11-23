@@ -52,6 +52,16 @@ Deno.serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
   );
 
+  const { data: isAdmin } = await supabaseAdmin
+    .from("user_roles")
+    .select("id")
+    .eq("user_id", userData.user.id)
+    .eq("role", "admin")
+    .maybeSingle();
+  if (!isAdmin) {
+    return errorResponse("Forbidden", 403);
+  }
+
   const url = new URL(req.url);
   const action = url.searchParams.get("action");
 

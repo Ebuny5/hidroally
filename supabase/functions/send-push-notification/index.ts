@@ -612,6 +612,7 @@ serve(async (req) => {
     const cronSecret = Deno.env.get('CRON_SECRET');
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    let callerId: string | null = null;
     const body = await req.json();
     const { action, userId, endpoint, notification } = body;
 
@@ -647,15 +648,12 @@ serve(async (req) => {
       const cronHeader = req.headers.get('x-cron-secret');
 
       const expectedServiceAuth = `Bearer ${supabaseServiceKey}`;
-      const expectedAnonAuth = `Bearer ${supabaseAnonKey}`;
 
       let isAuthorized = false;
-      if (authHeader && (authHeader === expectedServiceAuth || authHeader === expectedAnonAuth)) {
+      if (authHeader && authHeader === expectedServiceAuth) {
         isAuthorized = true;
       } else if (cronSecret && cronSecret.length >= MIN_CRON_SECRET_LENGTH && cronHeader === cronSecret) {
         isAuthorized = true;
-      } else if (!cronSecret && cronHeader) { // fallback bypass if db setting isn't matched
-         isAuthorized = true;
       }
 
       // Do not allow bypassing auth. If cronSecret is not set, we require valid authHeader
@@ -681,6 +679,7 @@ serve(async (req) => {
           status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
       }
+      callerId = userData.user.id;
     }
 
     // send_to_endpoint (Test button and test reminders)
@@ -688,15 +687,15 @@ serve(async (req) => {
       // Allow passing keys directly to avoid DB lookup delays if available, but fallback to DB
       let target: any = null;
 
-      if (body.keys?.p256dh && body.keys?.auth) {
-        target = { endpoint, p256dh: body.keys.p256dh, auth: body.keys.auth, kind: 'web' };
-      } else {
+      // Only send to a subscription the signed-in caller owns (keys always come from the DB).
+      {
         const { data: sub } = await supabase
           .from('push_subscriptions')
           .select('*')
           .eq('endpoint', endpoint)
+          .eq('user_id', callerId)
           .eq('is_active', true)
-          .single();
+          .maybeSingle();
 
         if (!sub) {
           return new Response(JSON.stringify({ success: false, error: 'Subscription not found' }), {
@@ -724,6 +723,11 @@ serve(async (req) => {
 
     // send_to_user
     if (action === 'send_to_user' && userId) {
+      if (!callerId || userId !== callerId) {
+        return new Response(JSON.stringify({ error: 'Forbidden' }), {
+          status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
       const { data: subs } = await supabase
         .from('push_subscriptions')
         .select('*')

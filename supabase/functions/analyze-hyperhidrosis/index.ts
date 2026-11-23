@@ -1,3 +1,4 @@
+import { getRequestUser } from "../_shared/requireUser.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
@@ -121,7 +122,7 @@ serve(async (req) => {
 
   try {
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
+    if (!authHeader || !(await getRequestUser(req))) {
       return new Response(JSON.stringify({ error: 'Missing Authorization header' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
