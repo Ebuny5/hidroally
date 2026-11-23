@@ -243,33 +243,43 @@ body {
 .auth-buttons-container {
   display: flex;
   align-items: center;
-  gap: 12px; /* Uniform spacing between buttons */
+  gap: 8px; /* Uniform spacing between buttons */
 }
-/* Base button styles to ensure identical shapes */
+/* Base button styles — compact, square, identical for Login and Sign Up */
 .nav-btn {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
-  padding: 10px 20px; /* Forces identical inner sizing */
-  border-radius: 20px; /* Matching clean pill shape */
+  letter-spacing: 0.01em;
+  padding: 0 14px; /* Short, tight horizontal sizing */
+  border-radius: 8px; /* Square/professional, matches the card buttons */
   text-decoration: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 40px; /* Guarantees identical heights */
+  height: 36px; /* Guarantees identical heights */
+  min-width: 72px;
   box-sizing: border-box;
+  white-space: nowrap;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 2px 6px rgba(20, 8, 40, 0.25);
   transition: all 0.2s ease;
 }
-/* Custom, styled Sign Up button */
-.btn-signup {
-  background-color: #E2D3F5; /* Light purple fill from your design */
-  color: #4A154B; /* Dark text for contrast */
-  border: none;
-}
-/* Upgraded Login button to match shape and height */
+/* Both use the same "Continue with email" violet fill */
+.btn-signup,
 .btn-login {
-  background-color: transparent;
-  color: #FFFFFF; /* Clean white text */
-  border: 2px solid #FFFFFF; /* Outlined border gives it identical structure */
+  background-color: #6D28D9; /* violet-700 — same as Continue with email */
+  color: #FFFFFF;
+}
+.btn-signup:hover,
+.btn-login:hover {
+  background-color: #5B21B6; /* violet-800 on hover */
+  border-color: rgba(255, 255, 255, 0.6);
+  transform: translateY(-1px);
+}
+.btn-signup:focus-visible,
+.btn-login:focus-visible {
+  outline: 2px solid #FFFFFF;
+  outline-offset: 2px;
 }
 
 /* Marquee for Landing Page Footer Badges */

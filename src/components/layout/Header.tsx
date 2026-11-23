@@ -7,7 +7,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import { LogOut, User, Settings, MessageSquare } from "lucide-react";
@@ -140,18 +140,18 @@ const Header: React.FC<HeaderProps> = ({ isAuthenticated }) => {
               </DropdownMenu>
             ) : (
               <div className="auth-buttons-container">
-                {pathname !== "/login" && <a
-                  onClick={() => navigate("/login")}
-                  className="nav-btn btn-login cursor-pointer"
+                {pathname !== "/login" && <Link
+                  to="/login"
+                  className="nav-btn btn-login"
                 >
                   Login
-                </a>}
-                {pathname !== "/register" && <a
-                  onClick={() => navigate("/register")}
-                  className="nav-btn btn-signup cursor-pointer"
+                </Link>}
+                {pathname !== "/register" && <Link
+                  to="/register"
+                  className="nav-btn btn-signup"
                 >
                   Sign Up
-                </a>}
+                </Link>}
               </div>
             )}
           </div>
