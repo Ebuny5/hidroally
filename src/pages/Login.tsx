@@ -76,10 +76,11 @@ const Login = () => {
 
   return (
     <AppLayout isAuthenticated={false}>
-      <div className="flex justify-center items-center min-h-[calc(100vh-100px)] bg-gradient-to-br from-[hsl(262,60%,14%)] via-[hsl(258,55%,22%)] to-[hsl(285,50%,24%)] p-4 py-8">
-        <Card className="w-full max-w-md bg-white border-0 shadow-lg relative pb-6">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold">Login</CardTitle>
+      <div className="flex justify-center items-center min-h-[100dvh] w-full bg-gradient-to-br from-[hsl(262,60%,14%)] via-[hsl(258,55%,22%)] to-[hsl(285,50%,24%)] px-4 py-10">
+        <Card className="w-full max-w-md bg-[hsl(265,90%,96%)] border border-violet-200 shadow-2xl rounded-3xl relative pb-6">
+          <CardHeader className="space-y-2 text-center pt-8">
+            <img src="/sweatsmart-logo.png" alt="HidroAlly" className="w-14 h-14 mx-auto object-contain" />
+            <CardTitle className="text-2xl font-bold text-violet-900">Welcome back to HidroAlly</CardTitle>
             <CardDescription>
               Enter your credentials to access your account
             </CardDescription>
@@ -88,7 +89,7 @@ const Login = () => {
             
               <div className="space-y-3">
                 <Button
-                  className="w-full bg-black text-white hover:bg-black/90 py-5 rounded-lg flex justify-center items-center font-semibold"
+                  className="w-full bg-white text-violet-900 border border-violet-200 hover:bg-violet-50 h-14 rounded-lg flex justify-center items-center font-semibold"
                   onClick={signInWithGoogle}
                   disabled={googleLoading}
                 >
@@ -97,7 +98,7 @@ const Login = () => {
                 </Button>
 
                 <Button
-                  className="w-full bg-blue-600 text-white hover:bg-blue-700 py-5 rounded-lg flex justify-center items-center font-semibold"
+                  className="w-full bg-violet-700 text-white hover:bg-violet-800 h-14 rounded-lg flex justify-center items-center font-semibold"
                   onClick={(e) => { e.preventDefault(); document.getElementById("email")?.focus(); }}
                 >
                   <Mail className="mr-2 h-5 w-5" />
@@ -110,7 +111,7 @@ const Login = () => {
                 <Separator className="w-full" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-muted-foreground">
+                <span className="bg-[hsl(265,90%,96%)] rounded-full px-3 text-muted-foreground">
                   Or continue with email
                 </span>
               </div>
@@ -151,7 +152,7 @@ const Login = () => {
               
               <Button 
                 type="submit" 
-                className="w-full bg-[#D6CEFA] text-violet-800 hover:brightness-105 font-bold py-5 rounded-lg text-base"
+                className="w-full bg-violet-700 text-white hover:bg-violet-800 font-bold h-14 rounded-lg text-base"
                 disabled={isLoading || !captchaVerified}
               >
                 {isLoading ? "Logging in..." : "Login"}

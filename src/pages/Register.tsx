@@ -94,8 +94,8 @@ const Register = () => {
 
   return (
     <AppLayout isAuthenticated={false}>
-      <div className="flex justify-center items-center min-h-screen w-full bg-gradient-to-br from-violet-50 to-pink-50 px-4 py-10">
-        <Card className="w-full max-w-md bg-white/70 backdrop-blur-md border border-violet-100 shadow-xl rounded-3xl relative pb-6">
+      <div className="flex justify-center items-center min-h-[100dvh] w-full bg-gradient-to-br from-[hsl(262,60%,14%)] via-[hsl(258,55%,22%)] to-[hsl(285,50%,24%)] px-4 py-10">
+        <Card className="w-full max-w-md bg-[hsl(265,90%,96%)] border border-violet-200 shadow-2xl rounded-3xl relative pb-6">
           <CardHeader className="space-y-2 text-center pt-8">
             <img src="/sweatsmart-logo.png" alt="HidroAlly" className="w-14 h-14 mx-auto object-contain" />
             <CardTitle className="text-2xl font-bold text-violet-900">Create your HidroAlly account</CardTitle>
@@ -129,7 +129,7 @@ const Register = () => {
                 <Separator className="w-full" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-violet-50 rounded-full px-3 text-muted-foreground">
+                <span className="bg-[hsl(265,90%,96%)] rounded-full px-3 text-muted-foreground">
                   Or continue with email
                 </span>
               </div>
