@@ -1077,7 +1077,9 @@ serve(async (req) => {
                body = 'Scorching Sun Alert: Intense direct solar radiation detected. High risk of sudden facial and palm sweat flares. Seek shade and use cooling compress.';
             } else {
                title = '⚠️ HidroAlly: High Sweat Alert';
-               body = `High Sweat Alert: RealFeel ${realFeel.toFixed(1)}°C with high humidity (${humidity}%). Prepare cool-down strategies.`;
+               body = humidity >= 65
+                 ? `High Sweat Alert: RealFeel ${realFeel.toFixed(1)}°C with high humidity (${humidity}%). Prepare cool-down strategies.`
+                 : `High Sweat Alert: RealFeel ${realFeel.toFixed(1)}°C driven by heat (humidity only ${humidity}%). Prepare cool-down strategies.`;
             }
           }
 

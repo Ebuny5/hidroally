@@ -155,48 +155,6 @@ const Contact = () => {
           </CardContent>
         </Card>
 
-        {/* WhatsApp Community */}
-        <Card className="border-border/50 shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-3">
-              <MessageSquare className="h-5 w-5 text-green-500" />
-              WhatsApp Community
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-professional-gray">
-              Join our WhatsApp group to connect directly with others managing hyperhidrosis, share tips and get real-time support.
-            </p>
-            <Button
-              onClick={() => window.open('https://chat.whatsapp.com/BKgrDMOttm76Jva6fSZUMi?mode=ac_t', '_blank')}
-              className="w-full bg-green-500 hover:bg-green-600 text-white"
-            >
-              Join WhatsApp Group
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Beyond Sweat Foundation */}
-        <Card className="border-border/50 shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-3">
-              <ExternalLink className="h-5 w-5 text-teal-500" />
-              Beyond Sweat Foundation
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-professional-gray">
-              A dedicated foundation providing education, advocacy and support resources for the global hyperhidrosis community.
-            </p>
-            <Button
-              onClick={() => window.open('https://www.beyondsweat.org', '_blank')}
-              className="w-full bg-teal-500 hover:bg-teal-600 text-white"
-            >
-              Visit beyondsweat.org
-            </Button>
-          </CardContent>
-        </Card>
-
       </div>
     </AppLayout>
   );

@@ -127,6 +127,17 @@ const LEVEL_META: Record<
 /**
  * Primary Sweat Risk Matrix Evaluator V2
  */
+/** Names the real climate driver so copy never blames humidity when the air is dry. */
+export function describeDrivers(temperature: number, humidity: number, uv: number): string {
+  const hot = temperature >= 30;
+  const humid = humidity >= 65;
+  const sun = uv >= 6 ? ' Strong sun (UV ' + uv.toFixed(1) + ') adds radiant heat.' : '';
+  if (hot && humid) return `Hot air (${temperature.toFixed(1)}°C) plus high humidity (${humidity.toFixed(0)}%) blocks sweat evaporation.${sun}`;
+  if (hot) return `High temperature (${temperature.toFixed(1)}°C) is the main trigger; humidity is low (${humidity.toFixed(0)}%), so heat, not moisture, drives sweating.${sun}`;
+  if (humid) return `High humidity (${humidity.toFixed(0)}%) slows sweat evaporation, so skin stays damp.${sun}`;
+  return `Warm conditions (${temperature.toFixed(1)}°C, ${humidity.toFixed(0)}% humidity) raise sweat load.${sun}`;
+}
+
 export function calculateSweatRiskV2(input: SweatRiskInput): SweatRiskResult {
   const { temperature, humidity, uvIndex, sky = 'unknown', edaValue, isSimulated, weatherId } = input;
 
@@ -211,13 +222,13 @@ export function calculateSweatRiskV2(input: SweatRiskInput): SweatRiskResult {
   } else if (realFeel >= 35) {
     level = 'extreme';
     message = 'Extreme Thermal & Moisture Stress';
-    description = `Feels like ${roundedRealFeel}°C. Severe compound load from direct sun and heavy humidity. Autonomic cooling is overwhelmed.`;
+    description = `Feels like ${roundedRealFeel}°C. ${describeDrivers(temperature, humidity, uvVal)} Autonomic cooling is overwhelmed.`;
 
   // HIGH RISK: Daytime evaporative block (Temp >= 24°C AND Humidity >= 85% AND UV >= 2.0) OR RealFeel >= 32°C
   } else if (realFeel >= 30) {
     level = 'high';
     message = 'Evaporative Impairment Flare Risk';
-    description = `Feels like ${roundedRealFeel}°C. High ambient humidity (${humidity.toFixed(0)}%) prevents sweat from evaporating naturally during activity.`;
+    description = `Feels like ${roundedRealFeel}°C. ${describeDrivers(temperature, humidity, uvVal)}`;
 
   // MODERATE RISK: Warm muggy weather (Temp >= 24°C + Humidity >= 70%) OR RealFeel >= 30°C
   } else if (realFeel >= 27 || (temperature >= 24 && humidity >= 70)) {
@@ -225,7 +236,7 @@ export function calculateSweatRiskV2(input: SweatRiskInput): SweatRiskResult {
     message = 'Elevated Moisture Load';
     description = realFeel < 27
       ? `Feels like ${roundedRealFeel}°C. Humid air (${humidity.toFixed(0)}%) stops sweat evaporating, so skin stays damp and sweating can build. Keep a fan on you and sip cold water.`
-      : `Feels like ${roundedRealFeel}°C. Ambient moisture slows skin drying. Maintain airflow with fans.`;
+      : `Feels like ${roundedRealFeel}°C. ${describeDrivers(temperature, humidity, uvVal)} Maintain airflow with fans.`;
 
   // FALLBACK: Low Risk
   } else {

@@ -9,3 +9,11 @@ describe('humid evaporative block', () => {
     expect(calculateSweatRiskV2({ temperature: 22, humidity: 95, uvIndex: 0 }).level).toBe('low');
   });
 });
+
+describe('climate reason matches real driver', () => {
+  it('35.1°C at 34% humidity blames heat, not humidity', () => {
+    const d = calculateSweatRiskV2({ temperature: 35.1, humidity: 34, uvIndex: 4 }).description;
+    expect(d).toContain('High temperature');
+    expect(d).not.toContain('high humidity');
+  });
+});
