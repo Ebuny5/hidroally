@@ -205,20 +205,7 @@ serve(async (req: Request) => {
       console.log('One Call UV fetch error:', e);
     }
 
-    if (uvIndex == null) {
-      try {
-        const uvUrl = `https://api.openweathermap.org/data/2.5/uvi?lat=${latitude}&lon=${longitude}&appid=${OPENWEATHER_API_KEY}`;
-        const uvResponse = await fetch(uvUrl);
-        if (uvResponse.ok) {
-          const uvData = await uvResponse.json();
-          if (typeof uvData?.value === 'number' && !isNaN(uvData.value)) {
-            uvIndex = uvData.value;
-          }
-        }
-      } catch (uvError) {
-        console.log('Legacy UV fetch failed:', uvError);
-      }
-    }
+    // No legacy /uvi fallback: it returns the daily peak, not the current UV.
 
     // Derive sky condition
     const clouds = weatherData.clouds?.all ?? 0;
