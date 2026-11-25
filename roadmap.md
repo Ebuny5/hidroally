@@ -1,3 +1,7 @@
+- [ ] Stop welcome emails on returning logins; send once after signup verification.
+- [ ] Remove camera scanning while preserving Resting, Active, and Trigger wearable simulations and shared EDA.
+- [ ] Use the dedicated Gemini chatbot key without changing episode analysis or chat speech providers.
+- [ ] Repair and verify scheduled climate alerts and eight-hour check-in delivery; identify any device blockers.
 - [x] Connect episode reports directly to Gemini 2.5 Flash with selected details, private history and Knowledge Base context.
 - [x] Remove report engine/training labels and make all report text clear with distinct section colours.
 - [x] Run focused checks, deploy the analysis function and document any unverified live flow.
