@@ -971,7 +971,20 @@ const HidroAlly = () => {
       });
 
       if (!res.ok || !res.body) {
-        toast.error('HidroAlly is having a moment — please try again');
+        const failure = await res.json().catch(() => null);
+        toast.error(failure?.error || 'HidroAlly could not complete this reply. Please try again.');
+        setIsLoading(false);
+        return;
+      }
+
+      if (res.headers.get('content-type')?.includes('application/json')) {
+        const reply = await res.json();
+        if (reply.triggerPdf) generatePDFReport();
+        if (typeof reply.content === 'string') {
+          const next = [...allMessages, { role: 'assistant' as const, content: reply.content }];
+          setMessages(next);
+          if (convId) await saveMessages(convId, next);
+        }
         setIsLoading(false);
         return;
       }
@@ -1012,6 +1025,7 @@ const HidroAlly = () => {
         }
       }
 
+      if (!assistantText.trim()) throw new Error('Chat returned no reply');
       setIsLoading(false);
 
       // Guarantee educational notice on all non-greeting educational/analytical responses

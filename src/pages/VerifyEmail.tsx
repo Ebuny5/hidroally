@@ -49,6 +49,7 @@ const VerifyEmail = () => {
         );
         return;
       }
+      void supabase.functions.invoke('send-welcome-email', { body: {} }).catch(() => {});
       toast({ title: "Email verified 🎉", description: "Welcome to HidroAlly, your dashboard is ready." });
       const route = await resolvePostLoginRoute(data.user);
       navigate(route, { replace: true });

@@ -1,37 +1,9 @@
-import React from 'react';
-
-interface SensorDisplayCardProps {
-  icon: React.ReactNode;
-  label: string;
-  value: number | string;
-  unit: string;
-  colorClass: string;
-  valueColor?: string;
+import type { ReactNode } from 'react';
+interface Props { icon: ReactNode; label: string; value: number | string; unit: string; colorClass: string; valueColor?: string }
+export default function SensorDisplayCard({ icon, label, value, unit, colorClass, valueColor }: Props) {
+  return <div className="bg-card text-card-foreground border border-border p-6 rounded-lg flex flex-col items-center justify-center text-center gap-3">
+    <div className={colorClass}>{icon}</div>
+    <p className="text-muted-foreground text-sm font-medium">{label}</p>
+    <p className={`text-3xl font-bold ${valueColor || colorClass}`}>{typeof value === 'number' ? (unit === 'bpm' ? Math.round(value) : value.toFixed(2)) : value}<span className="text-base ml-2 font-normal">{unit}</span></p>
+  </div>;
 }
-
-const SensorDisplayCard: React.FC<SensorDisplayCardProps> = ({ icon, label, value, unit, colorClass, valueColor }) => {
-  const resolvedValueColor = valueColor ?? 'text-sky-400';
-  return (
-    <div className="
-      bg-white/10
-      backdrop-blur-xl
-      border border-white/20
-      p-6 rounded-2xl
-      flex flex-col items-center justify-center text-center
-      shadow-2xl
-      transform hover:scale-[1.03] hover:bg-white/[0.14]
-      transition-all duration-300
-    ">
-      <div className="mb-4">
-        {icon}
-      </div>
-      <p className="text-purple-200 text-sm font-medium mb-1">{label}</p>
-      <p className={`text-3xl font-bold tracking-tight ${resolvedValueColor}`}>
-        {typeof value === 'number' ? value.toFixed(2) : value}
-        <span className={`text-lg ml-1 font-normal opacity-75 ${resolvedValueColor}`}>{unit}</span>
-      </p>
-    </div>
-  );
-};
-
-export default SensorDisplayCard;

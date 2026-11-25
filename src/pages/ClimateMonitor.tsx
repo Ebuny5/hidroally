@@ -449,7 +449,7 @@ const ClimateMonitor = () => {
               </div>
             )}
 
-            {/* EDA + Palm Scanner */}
+            {/* EDA + Wearable Simulator */}
             <div className="space-y-4">
               <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl p-4">
                 <div className="flex items-center justify-between">
@@ -481,7 +481,7 @@ const ClimateMonitor = () => {
                 }}
                 className="w-full py-3 bg-white/20 hover:bg-white/30 border border-white/30 backdrop-blur-md rounded-xl transition-colors font-semibold flex items-center justify-center gap-2 text-white"
               >
-                <ZapIcon className="w-5 h-5" /> Go to Scanner
+                <ZapIcon className="w-5 h-5" /> Giftovate Band
               </button>
             </div>
 

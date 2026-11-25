@@ -235,20 +235,6 @@ export default function NewIndex() {
               <button onClick={() => navigate('/log-episode')} className="w-full py-2 text-blue-600 font-medium hover:bg-blue-50 rounded-lg transition">Log an Episode</button>
             </div>
 
-            {/* 2. AI Palm Scanner */}
-            <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow">
-              <div className="flex justify-center mb-4">
-                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center">
-                  <Scan className="w-8 h-8 text-purple-600" />
-                </div>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 text-center mb-3">AI Palm Scanner</h3>
-              <p className="text-gray-600 text-center mb-4">
-                <span className="font-semibold">Instant Detection:</span> Scan your palms, hands, feet, and soles with AI-powered moisture analysis. Get objective severity ratings in seconds.
-              </p>
-              <button onClick={() => navigate('/palm-scanner')} className="w-full py-2 text-purple-600 font-medium hover:bg-purple-50 rounded-lg transition">Scan Your Palms</button>
-            </div>
-
             {/* 3. Wearable Sensor Integration */}
             <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow">
               <div className="flex justify-center mb-4">
@@ -258,7 +244,7 @@ export default function NewIndex() {
               </div>
               <h3 className="text-xl font-bold text-gray-900 text-center mb-3">Wearable Sensor Integration</h3>
               <p className="text-gray-600 text-center mb-4">
-                <span className="font-semibold">Multimodal Stress Detection:</span> Combine palm scanning with wearable sensor data (EDA, heart rate) for comprehensive stress and sweat pattern analysis.
+                <span className="font-semibold">Giftovate Band Prototype:</span> Explore simulated EDA and heart rate across Resting, Active, and Trigger phases while the Giftovate Band is in prototype development.
               </p>
               <button onClick={() => navigate('/palm-scanner')} className="w-full py-2 text-cyan-600 font-medium hover:bg-cyan-50 rounded-lg transition">Connect Sensor</button>
             </div>

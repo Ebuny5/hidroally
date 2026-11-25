@@ -88,7 +88,7 @@ const menuItems = [
   {
     path: "/palm-scanner",
     icon: Hand,
-    label: "Scanner",
+    label: "Giftovate Band",
     activeGradient: "from-cyan-400 to-blue-500",
     activeBg: "bg-cyan-50",
     activeText: "text-cyan-700",

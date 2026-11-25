@@ -23,13 +23,6 @@ export const EdaIcon: React.FC<{ className?: string }> = ({ className }) => (
   </svg>
 );
 
-export const CameraIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2-2H5a2 2 0 01-2-2V9z" />
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-  </svg>
-);
-
 export const CopyIcon: React.FC<{ className?: string }> = ({ className }) => (
   <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -42,12 +35,6 @@ export const CheckIcon: React.FC<{ className?: string }> = ({ className }) => (
   </svg>
 );
 
-export const UploadIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-  </svg>
-);
-
 // Warrior Glass palette — button colors from former design, home-screen accent colors
 export const MODE_DETAILS: Record<
   SimulationMode,
@@ -56,25 +43,25 @@ export const MODE_DETAILS: Record<
   Resting: {
     color: 'bg-green-600/20',
     activeColor: 'bg-green-600/50',
-    textColor: 'text-green-400',
+    textColor: 'text-[hsl(var(--sensor-resting))]',
     dotColor: 'bg-green-500',
-    buttonColor: 'bg-[#22c55e] hover:bg-[#16a34a] text-white',
+    buttonColor: 'bg-[hsl(var(--sensor-resting))] hover:bg-[hsl(var(--sensor-resting)/0.9)] text-primary-foreground',
     ranges: ['EDA: 2.0–5.0 μS', 'HR: 60–72 bpm'],
   },
   Active: {
     color: 'bg-cyan-600/20',
     activeColor: 'bg-cyan-600/50',
-    textColor: 'text-cyan-400',
+    textColor: 'text-[hsl(var(--sensor-active))]',
     dotColor: 'bg-cyan-500',
-    buttonColor: 'bg-[#06b6d4] hover:bg-[#0891b2] text-white',
+    buttonColor: 'bg-[hsl(var(--sensor-active))] hover:bg-[hsl(var(--sensor-active)/0.9)] text-primary-foreground',
     ranges: ['EDA: 5.0–9.0 μS', 'HR: 72–85 bpm'],
   },
   Trigger: {
     color: 'bg-red-600/20',
     activeColor: 'bg-red-600/50',
-    textColor: 'text-red-400',
+    textColor: 'text-destructive',
     dotColor: 'bg-red-500',
-    buttonColor: 'bg-[#dc2626] hover:bg-[#ef4444] text-white',
+    buttonColor: 'bg-destructive hover:bg-destructive/90 text-destructive-foreground',
     ranges: ['EDA: 10.0–15.0 μS', 'HR: 85–105 bpm'],
   },
 };

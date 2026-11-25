@@ -74,33 +74,10 @@ const AuthCallback = () => {
       // Default: if we have a user, check if they need profile setup. If not, back to login.
       const t = setTimeout(async () => {
         if (user) {
-          console.log('Checking profile for user:', user.id);
-          // Check if user has a display name set
-          const { data: profileRaw } = await supabase
-            .from('profiles')
-            .select('display_name, has_received_welcome, is_profile_complete')
-            .eq('user_id', user.id)
-            .maybeSingle();
-          const profile = profileRaw as any;
+          // The server allows only a verified signup queued in the protected delivery ledger.
+          // A failed profile read must never turn a returning login into a new welcome.
+          void supabase.functions.invoke('send-welcome-email', { body: {} }).catch(() => {});
 
-          // Check if user has not received welcome email yet
-          if (user?.email && (!profile || !profile.has_received_welcome)) {
-            try {
-              console.log('Triggering welcome email for verified user...');
-              // Update flag immediately so we don't trigger it twice
-              await supabase
-                .from('profiles')
-                .update({ has_received_welcome: true } as any)
-                .eq('user_id', user.id);
-
-              await supabase.functions.invoke('send-welcome-email', {
-                body: { email: user.email, record: { id: user.id, email: user.email } }
-              });
-            } catch (emailErr) {
-              console.error('Failed to send welcome email:', emailErr);
-            }
-          }
-          
           const route = await resolvePostLoginRoute(user);
           navigate(route, { replace: true });
         } else {

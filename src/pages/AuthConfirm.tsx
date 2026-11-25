@@ -28,6 +28,7 @@ const AuthConfirm = () => {
       if (type === "recovery") {
         navigate("/reset-password", { replace: true });
       } else {
+        void supabase.functions.invoke('send-welcome-email', { body: {} }).catch(() => {});
         navigate(await resolvePostLoginRoute(data.user), { replace: true });
       }
     })();

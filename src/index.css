@@ -1,11 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
+    --sensor-resting: 160 70% 28%;
+    --sensor-active: 38 85% 30%;
     --background: 230 100% 94%;
     --foreground: 215 25% 27%;
 
@@ -64,6 +64,8 @@
   }
 
   .dark {
+    --sensor-resting: 160 65% 60%;
+    --sensor-active: 38 90% 65%;
     --background: 215 28% 10%;
     --foreground: 210 20% 98%;
 

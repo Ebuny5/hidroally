@@ -1,3 +1,6 @@
+import { maySendWelcome } from "./eligibility.ts";
+import { createClient } from "npm:@supabase/supabase-js@2";
+import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { getRequestUser } from "../_shared/requireUser.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { Resend } from "npm:resend";
@@ -6,11 +9,6 @@ const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const resend = new Resend(RESEND_API_KEY);
 
 const FROM_EMAIL = Deno.env.get("WELCOME_EMAIL_FROM") || "HidroAlly <team@hidroally.space>";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-hook-secret',
-};
 
 const WELCOME_EMAIL_HTML = `<!DOCTYPE html>
 <html lang="en">
@@ -79,80 +77,40 @@ const WELCOME_EMAIL_HTML = `<!DOCTYPE html>
 </html>`;
 
 serve(async (req) => {
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  // Shared-secret guard: allow if x-hook-secret matches OR if Authorization header is present
-  const hookSecret = Deno.env.get("WELCOME_EMAIL_HOOK_SECRET");
-  const authHeader = req.headers.get("authorization");
-  const requestHookSecret = req.headers.get("x-hook-secret");
-
-  // Trusted path: database hook with the shared secret. Otherwise the caller must be
-  // signed in, and the email can only go to their own verified address.
-  const isHook = !!hookSecret && requestHookSecret === hookSecret;
+  const json = (body: object, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+  if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
+  const hookSecret = Deno.env.get('WELCOME_EMAIL_HOOK_SECRET');
+  const isHook = !!hookSecret && req.headers.get('x-hook-secret') === hookSecret;
   const caller = isHook ? null : await getRequestUser(req);
-  if (!isHook && !caller?.email) {
-    console.error("Unauthorized welcome-email invocation");
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 401,
-    });
-  }
-
+  if (!isHook && !caller) return json({ error: 'Unauthorized' }, 401);
   try {
     const payload = await req.json();
-    console.log("Welcome email request received:", payload);
-
-    if (!RESEND_API_KEY) {
-      console.error("RESEND_API_KEY is not set.");
-      throw new Error("RESEND_API_KEY environment variable is not configured");
+    const userId = isHook ? payload?.record?.id : caller?.id;
+    if (typeof userId !== 'string' || !/^[0-9a-f-]{36}$/i.test(userId)) return json({ error: 'Invalid account' }, 400);
+    const url = Deno.env.get('SUPABASE_URL');
+    const key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    if (!url || !key || !RESEND_API_KEY) return json({ error: 'Email service is unavailable' }, 503);
+    const admin = createClient(url, key);
+    const { data: account, error: accountError } = await admin.auth.admin.getUserById(userId);
+    if (accountError || !account.user?.email) return json({ error: 'Account not found' }, 404);
+    const { data: delivery, error: readError } = await admin.from('welcome_email_deliveries').select('status').eq('user_id', userId).maybeSingle();
+    if (readError) return json({ error: 'Unable to check welcome delivery' }, 503);
+    if (!maySendWelcome(!!account.user.email_confirmed_at, delivery?.status)) return json({ success: true, skipped: true });
+    // Atomic claim prevents concurrent OAuth callbacks, verification tabs, and retries from sending twice.
+    const { data: claim, error: claimError } = await admin.from('welcome_email_deliveries').update({ status: 'sending', updated_at: new Date().toISOString() }).eq('user_id', userId).eq('status', 'pending').select('user_id').maybeSingle();
+    if (claimError) return json({ error: 'Unable to reserve welcome delivery' }, 503);
+    if (!claim) return json({ success: true, skipped: true });
+    const { error } = await resend.emails.send({ from: FROM_EMAIL, to: [account.user.email], subject: 'Welcome to HidroAlly', html: WELCOME_EMAIL_HTML }, { idempotencyKey: `welcome/${userId}` });
+    if (error) {
+      await admin.from('welcome_email_deliveries').update({ status: 'pending', updated_at: new Date().toISOString() }).eq('user_id', userId).eq('status', 'sending');
+      return json({ error: 'Welcome delivery failed' }, 502);
     }
-
-    // Support batch emails payload for retroactive triggers
-    const emailsList: string[] = !isHook
-      ? [caller!.email!]
-      : Array.isArray(payload?.emails)
-      ? payload.emails
-      : (payload?.email || payload?.record?.email)
-      ? [payload?.email || payload?.record?.email]
-      : [];
-
-    if (emailsList.length === 0) {
-      throw new Error("No email found in payload");
-    }
-
-    const results = [];
-    for (const email of emailsList) {
-      if (!email || typeof email !== "string") continue;
-
-      const { data, error } = await resend.emails.send({
-        from: FROM_EMAIL,
-        to: [email],
-        subject: "Welcome to HidroAlly",
-        html: WELCOME_EMAIL_HTML,
-      });
-
-      if (error) {
-        console.error(`Resend emails.send error for ${email}:`, error);
-        results.push({ email, success: false, error });
-      } else {
-        console.log(`Welcome email sent successfully to ${email}:`, data);
-        results.push({ email, success: true, data });
-      }
-    }
-
-    return new Response(JSON.stringify({ success: true, results }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
-  } catch (error) {
-    console.error("Error processing welcome email:", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    return new Response(JSON.stringify({ error: errorMessage }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 400,
-    });
+    const { error: saveError } = await admin.from('welcome_email_deliveries').update({ status: 'sent', sent_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('user_id', userId).eq('status', 'sending');
+    if (saveError) return json({ error: 'Unable to finalize welcome delivery' }, 503);
+    return json({ success: true });
+  } catch {
+    // An ambiguous provider/network failure leaves the claim locked rather than risk sending a duplicate.
+    return json({ error: 'Unable to process welcome delivery' }, 500);
   }
 });

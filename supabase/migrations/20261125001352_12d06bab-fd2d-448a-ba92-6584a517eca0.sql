@@ -1,0 +1,1 @@
+CREATE POLICY welcome_delivery_service_only ON public.welcome_email_deliveries FOR ALL TO service_role USING (true) WITH CHECK (true);

@@ -111,7 +111,7 @@ const HidroAllyLanding = () => {
     {
       icon: "🎯",
       title: "Your Personal Trigger Profile",
-      desc: "Every log and EDA scan is connected to your Personal Trigger Profile. This isn't just a list of episodes; it is a <span class='highlight-gold'>&quot;Digital Phenotype&quot;</span>—a smart map of your life. Identify whether your episodes are <span class='highlight-navy'>climate-driven or stress-driven</span>, allowing you to build a clearer understanding of your daily comfort and stay in control.",
+      desc: "Every log and sensor reading is connected to your Personal Trigger Profile. This isn't just a list of episodes; it is a <span class='highlight-gold'>&quot;Digital Phenotype&quot;</span>—a smart map of your life. Identify whether your episodes are <span class='highlight-navy'>climate-driven or stress-driven</span>, allowing you to build a clearer understanding of your daily comfort and stay in control.",
       accent: "#818cf8",
       direction: "right",
     },
@@ -131,8 +131,8 @@ const HidroAllyLanding = () => {
     },
     {
       icon: "🫴",
-      title: "AIoT Biometric Simulation (Xiaomi Integration)",
-      desc: "Bridge the gap between smartphone accessibility and medical diagnostics. Our world-first camera-integrated <span class='highlight-gold'>Palm Scanner</span> utilizes computer vision and moisture detection to simulate <span class='highlight-navy'>Xiaomi IoT sensor data</span>. By quantifying your Electrodermal Activity (EDA) and heart rate across Resting, Active, and Trigger phases, the app confirms your &quot;physiological state&quot; to provide <span class='highlight-gold'>objective evidence</span> for a condition that is otherwise invisible.",
+      title: "Giftovate Band Sensor Simulation",
+      desc: "Explore simulated <span class='highlight-gold'>Electrodermal Activity (EDA)</span> and <span class='highlight-navy'>heart rate</span> across Resting, Active, and Trigger phases. The Giftovate Band is in prototype development; these simulated readings are not live measurements or diagnostic confirmation.",
       accent: "#f0abfc",
       direction: "left",
     },
