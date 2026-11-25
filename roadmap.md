@@ -1,9 +1,12 @@
-- [ ] Stop welcome emails on returning logins; send once after signup verification.
-- [ ] Remove camera scanning while preserving Resting, Active, and Trigger wearable simulations and shared EDA.
-- [ ] Use the dedicated Gemini chatbot key without changing episode analysis or chat speech providers.
-- [ ] Repair and verify scheduled climate alerts and eight-hour check-in delivery; identify any device blockers.
+- [x] Stop welcome emails on returning logins; send once after signup verification with a protected delivery ledger and existing-user backfill.
+- [x] Remove camera scanning while preserving Resting, Active, and Trigger wearable simulations and shared EDA.
+- [ ] Restore live chatbot replies: dedicated-key integration is deployed, but Google returns 403 because this key's project has no free-tier access; replacement-key form was declined.
+- [x] Synchronize scheduler authentication and verify climate and eight-hour check-in processing; preserve hourly cadence and notification limits.
+- [ ] Verify phone delivery: needs the user's device subscription with saved coordinates and an eligible alert; no injectable signed-in session is available for external Supabase.
 - [x] Connect episode reports directly to Gemini 2.5 Flash with selected details, private history and Knowledge Base context.
 - [x] Remove report engine/training labels and make all report text clear with distinct section colours.
 - [x] Run focused checks, deploy the analysis function and document any unverified live flow.
 
 Verification: four server tests passed; direct Google request returned 200 with all synthetic areas/triggers and nine relief strategies. Real Gemini response rendered at 360px and 1280px with opaque surfaces, distinct whole-section colours and no horizontal overflow. Function deployed and CORS preflight returned 200. Authenticated save-to-report verification remains unavailable because this external Supabase project has no injectable test session; no records were added to real users' histories.
+
+Current verification: 11 Edge Function tests and 7 sensor/climate tests passed; preview build OK. Wearable phases ran at 360px and 1280px without camera controls or horizontal overflow. Welcome ledger contains 55 existing accounts marked sent. Scheduler-authenticated calls returned 202 and completion logs returned 200 with zero failures. All three protected endpoints reject unauthenticated requests with 401. Fifteen of twenty active web subscriptions have no coordinates; four located devices were outside daytime hours and one had Low risk. Reminder calls were correctly skipped by quiet hours or recent-reminder cooldown. Real climate GPS now triggers immediate push-context resync. New-account inbox delivery and real-phone receipt remain unverified.

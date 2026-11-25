@@ -1,10 +1,8 @@
+import { REMINDER_LIMIT, CLIMATE_LIMIT, REMINDER_INTERVAL_MS, isQuietHour, hasCoordinates, climateCooldownBlocks } from './deliveryRules.ts';
+import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
+declare const EdgeRuntime: { waitUntil(promise: Promise<unknown>): void };
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-cron-secret',
-};
 
 const LOG_REMINDER_TITLE = '⏰ Time for Your Eight-Hour Check-In';
 const LOG_REMINDER_BODY = "It's time to check-in 🤗";
@@ -510,12 +508,13 @@ async function sendWebPush(
 // ── Rate limit helpers ──
 async function getNotificationCountToday(supabase: any, subscriptionId: string, notificationType: string): Promise<number> {
   const today = new Date().toISOString().split('T')[0];
-  const { count } = await supabase
+  const { count, error } = await supabase
     .from('notification_log')
     .select('*', { count: 'exact', head: true })
     .eq('subscription_id', subscriptionId)
     .eq('notification_type', notificationType)
     .eq('created_date', today);
+  if (error) throw new Error('Unable to verify notification limit');
   return count || 0;
 }
 
@@ -597,7 +596,7 @@ function calculateSweatRisk(temp: number, humidity: number, uv: number, threshol
 }
 
 // ── Main handler ──
-serve(async (req) => {
+async function handleRequest(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -681,6 +680,21 @@ serve(async (req) => {
       }
       callerId = userData.user.id;
     }
+
+    if (isCronAction && body.waitForCompletion !== true && body.dryRun !== true) {
+      const backgroundRequest = new Request(req.url, {
+        method: 'POST', headers: req.headers,
+        body: JSON.stringify({ ...body, waitForCompletion: true }),
+      });
+      EdgeRuntime.waitUntil(handleRequest(backgroundRequest).then(async response => {
+        const summary = await response.json();
+        console.log('Scheduled delivery completed', { action, status: response.status, ...summary });
+      }).catch(() => console.error('Scheduled delivery failed')));
+      return new Response(JSON.stringify({ success: true, accepted: true }), {
+        status: 202, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const dryRun = body.dryRun === true && isCronAction;
 
     // send_to_endpoint (Test button and test reminders)
     if (action === 'send_to_endpoint' && endpoint) {
@@ -825,7 +839,7 @@ serve(async (req) => {
 
       console.log(`🔔 Found ${subs?.length || 0} active subscriptions`);
 
-      const EIGHT_HOURS_MS = 8 * 60 * 60 * 1000;
+      const EIGHT_HOURS_MS = REMINDER_INTERVAL_MS;
       const now = Date.now();
       let sent = 0, skipped = 0, failed = 0;
       const skipReasons = { quietHours: 0, dailyLimit: 0, recentReminder: 0, recentLog: 0 };
@@ -841,7 +855,7 @@ serve(async (req) => {
             if (localHour >= 24) localHour -= 24;
             if (localHour < 0) localHour += 24;
 
-            if (localHour >= 22 || localHour < 6) {
+            if (isQuietHour(localHour)) {
               console.log(`⏭️ Sub ${sub.id}: Skipping reminder due to quiet hours (estimated local hour ${localHour})`);
               skipped++;
               skipReasons.quietHours++;
@@ -850,7 +864,7 @@ serve(async (req) => {
           }
 
           const todayCount = await getNotificationCountToday(supabase, sub.id, 'logging_reminder');
-          if (todayCount >= 2) {
+          if (todayCount >= REMINDER_LIMIT) {
             console.log(`⏭️ Sub ${sub.id}: Max today (${todayCount})`);
             skipped++;
             skipReasons.dailyLimit++;
@@ -893,26 +907,9 @@ serve(async (req) => {
 
           console.log(`📤 Sub ${sub.id}: Sending reminder...`);
 
-          let reminderTitle = LOG_REMINDER_TITLE;
-          let reminderBody = LOG_REMINDER_BODY;
-
-          if (sub.user_id) {
-             const { data: lastEpisode } = await supabase
-              .from('episodes')
-              .select('created_at')
-              .eq('user_id', sub.user_id)
-              .order('created_at', { ascending: false })
-              .limit(1)
-              .maybeSingle();
-
-            if (lastEpisode) {
-              const lastLogTime = new Date(lastEpisode.created_at).getTime();
-              if (now - lastLogTime > (8 * 60 * 60 * 1000 + 30 * 60 * 1000)) {
-                reminderTitle = MISSED_REMINDER_TITLE;
-                reminderBody = MISSED_REMINDER_BODY;
-              }
-            }
-          }
+          const reminderTitle = LOG_REMINDER_TITLE;
+          const reminderBody = LOG_REMINDER_BODY;
+          if (dryRun) { sent++; continue; }
 
           const result = await deliverPush(
             sub,
@@ -921,7 +918,7 @@ serve(async (req) => {
               body: reminderBody,
               tag: 'logging-reminder',
               type: 'reminder',
-              kind: reminderTitle === MISSED_REMINDER_TITLE ? 'missed-checkin' : 'reminder',
+              kind: 'reminder',
               url: '/log-episode',
             },
             { publicKey: vapidPublicKey, privateKey: vapidPrivateKey, subject: vapidSubject }
@@ -948,14 +945,15 @@ serve(async (req) => {
       }
 
       console.log(`Logging reminders: sent=${sent}, skipped=${skipped}, failed=${failed}`, skipReasons);
-      return new Response(JSON.stringify({ success: true, sent, skipped, failed, skipReasons }), {
+      return new Response(JSON.stringify({ success: true, dryRun, sent, skipped, failed, skipReasons }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
     // send_climate_alerts
     if (action === 'send_climate_alerts') {
-      const { data: subs } = await supabase.from('push_subscriptions').select('*').eq('is_active', true);
+      const { data: subs, error: subsError } = await supabase.from('push_subscriptions').select('*').eq('is_active', true);
+      if (subsError) throw new Error('Unable to load climate subscriptions');
       const weatherApiKey = Deno.env.get('OPENWEATHER_API_KEY');
       if (!weatherApiKey) {
         return new Response(JSON.stringify({ error: 'OPENWEATHER_API_KEY not set' }), {
@@ -964,16 +962,19 @@ serve(async (req) => {
       }
 
       let sent = 0, skipped = 0, failed = 0;
+      const skipReasons = { missingLocation: 0, outsideDaytime: 0, lowRisk: 0, dailyLimit: 0, cooldown: 0 };
 
       for (const sub of subs || []) {
-        if (!sub.latitude || !sub.longitude) { skipped++; continue; }
+        if (!hasCoordinates(sub.latitude, sub.longitude)) { skipped++; skipReasons.missingLocation++; continue; }
 
         try {
           // Timezone resolution via OpenWeatherMap (uses local timezone based on coordinates)
           const weatherRes = await fetch(
             `https://api.openweathermap.org/data/2.5/weather?lat=${sub.latitude}&lon=${sub.longitude}&units=metric&appid=${weatherApiKey}`
           );
+          if (!weatherRes.ok) throw new Error('Weather provider unavailable');
           const weather = await weatherRes.json();
+          if (!Number.isFinite(weather.main?.temp) || !Number.isFinite(weather.main?.humidity)) throw new Error('Weather reading incomplete');
           const temp = weather.main?.temp || 0;
           const humidity = weather.main?.humidity || 0;
           const clouds = weather.clouds?.all ?? 0;
@@ -994,7 +995,7 @@ serve(async (req) => {
 
           // Restrict automated climate alerts to daytime (07:00 - 19:00) local time
           if (localHour < 7 || localHour >= 19) {
-            skipped++;
+            skipped++; skipReasons.outsideDaytime++;
             continue;
           }
 
@@ -1029,25 +1030,16 @@ serve(async (req) => {
           }
 
 
-          // Get user thresholds
-          let customThresholds = {};
-          if (sub.user_id) {
-             const { data: profile } = await supabase.from('profiles').select('custom_thresholds').eq('id', sub.user_id).single();
-             if (profile?.custom_thresholds) {
-                customThresholds = typeof profile.custom_thresholds === 'string' ? JSON.parse(profile.custom_thresholds) : profile.custom_thresholds;
-             }
-          }
-
-          const risk = calculateSweatRisk(temp, humidity, uv, customThresholds, weatherId);
-          // Only dispatch automatic push notifications for High and Extreme Risk to prevent spam
-          if (risk === 'low' || risk === 'safe') { skipped++; continue; }
+          const risk = calculateSweatRisk(temp, humidity, uv, {}, weatherId);
+          // Moderate, High and Extreme alert; Low does not.
+          if (risk === 'low') { skipped++; skipReasons.lowRisk++; continue; }
 
           const notifType = risk === 'extreme' ? 'climate_extreme' : risk === 'high' ? 'climate_high' : 'climate_moderate';
 
           const totalToday = await getNotificationCountToday(supabase, sub.id, 'climate_high') +
             await getNotificationCountToday(supabase, sub.id, 'climate_extreme') + await getNotificationCountToday(supabase, sub.id, 'climate_moderate');
 
-          if (totalToday >= 6) { skipped++; continue; } // Reduced max to 6 per day to avoid Chrome spam detection
+          if (totalToday >= CLIMATE_LIMIT) { skipped++; skipReasons.dailyLimit++; continue; } // Reduced max to 6 per day to avoid Chrome spam detection
 
           // 2-hour cooldown timer logic for repeated alerts
           const { data: lastNotif } = await supabase
@@ -1062,14 +1054,8 @@ serve(async (req) => {
           if (lastNotif) {
              const lastSentMs = new Date(lastNotif.sent_at).getTime();
              const nowMs = Date.now();
-             const twoHoursMs = 2 * 60 * 60 * 1000;
-
-             // If we've sent any climate alert in the last 2 hours, block it to prevent spam
-             if (nowMs - lastSentMs < twoHoursMs) {
-                // The only exception is escalating from High to Extreme
-                if (!((lastNotif.notification_type === 'climate_high' && notifType === 'climate_extreme') || (lastNotif.notification_type === 'climate_moderate' && (notifType === 'climate_extreme' || notifType === 'climate_high')))) {
-                   skipped++; continue;
-                }
+             if (climateCooldownBlocks(nowMs - lastSentMs, lastNotif.notification_type, notifType)) {
+               skipped++; skipReasons.cooldown++; continue;
              }
           }
 
@@ -1093,6 +1079,7 @@ serve(async (req) => {
             }
           }
 
+          if (dryRun) { sent++; continue; }
           const result = await deliverPush(
             sub,
             { title, body, tag: 'climate-alert', type: risk, kind: risk, url: '/climate' },
@@ -1115,7 +1102,7 @@ serve(async (req) => {
       }
 
       console.log(`Climate alerts: sent=${sent}, skipped=${skipped}, failed=${failed}`);
-      return new Response(JSON.stringify({ success: true, sent, skipped, failed }), {
+      return new Response(JSON.stringify({ success: true, dryRun, sent, skipped, failed, skipReasons }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
@@ -1130,4 +1117,6 @@ serve(async (req) => {
       status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }
-});
+}
+
+serve(handleRequest);

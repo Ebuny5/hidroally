@@ -56,6 +56,7 @@ const NotificationListener = () => {
     const syncInterval = setInterval(syncPush, 30 * 60 * 1000);
     const onVisible = () => { if (document.visibilityState === 'visible') syncPush(); };
     document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('climate:location-ready', syncPush);
 
     // Listen for Service Worker messages (Background PUSH wake-ups)
     const handleSWMessage = (event: MessageEvent) => {
@@ -81,6 +82,7 @@ const NotificationListener = () => {
       climateAlertService.cleanup();
       clearInterval(syncInterval);
       document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('climate:location-ready', syncPush);
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.removeEventListener('message', handleSWMessage);
       }

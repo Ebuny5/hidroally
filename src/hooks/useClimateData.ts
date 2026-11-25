@@ -91,6 +91,14 @@ export function useClimateData(): ClimateSnapshot {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setCoords(pos.coords);
+        // Share actual GPS coordinates with background push, never simulated weather coordinates.
+        try {
+          localStorage.setItem('sweatsmart:lastCoords', JSON.stringify({
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+          }));
+        } catch { /* Location sync can still use the live reading. */ }
+        window.dispatchEvent(new CustomEvent('climate:location-ready'));
         setError(null);
       },
       (err) => {
