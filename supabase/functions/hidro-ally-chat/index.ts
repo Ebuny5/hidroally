@@ -1,4 +1,4 @@
-import { buildContents, generateChat, chatEventStream } from "./gemini.ts";
+import { buildInput, generateChat, chatEventStream } from "./lovableChat.ts";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.5";
@@ -609,20 +609,15 @@ IMPORTANT NUANCE — do NOT refuse questions that are adjacent to HH:
 
 CURRENT MESSAGE TYPE: ${isCasualGreeting ? 'CASUAL GREETING — respond warmly and briefly. Do NOT reference episode data or clinical information.' : isSigningOff ? 'SIGN-OFF — respond warmly and briefly. Let them go. No questions. No new topics.' : isClinical ? 'CLINICAL — apply full reasoning with their personal data.' : 'GENERAL — be warm and present. No need to push clinical data.'}`;
 
-    if (!GEMINI_API_KEY) {
-      return new Response(JSON.stringify({ error: 'The dedicated chatbot Gemini key is not configured.' }), {
-        status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
     if (imageBase64 && (typeof imageBase64 !== 'string' || imageBase64.length > 20 * 1024 * 1024 || (attachmentMime && !['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'].includes(attachmentMime)))) {
       return new Response(JSON.stringify({ error: 'Invalid or oversized attachment.' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
     try {
-      const reply = await generateChat(GEMINI_API_KEY, systemPrompt, buildContents(messages, imageBase64, attachmentMime, attachmentCarriedOver));
+      const reply = await generateChat(systemPrompt, buildInput(messages, imageBase64, attachmentMime, attachmentCarriedOver));
       return new Response(chatEventStream(reply), { headers: { ...corsHeaders, 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache' } });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Chat could not complete this reply.';
-      return new Response(JSON.stringify({ error: message }), { status: message.includes('usage limit') ? 429 : 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      return new Response(JSON.stringify({ error: message }), { status: message.includes('very busy') ? 429 : 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
   } catch (error) {

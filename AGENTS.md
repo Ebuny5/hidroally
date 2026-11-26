@@ -1,7 +1,7 @@
 - Post-login routing goes only through src/utils/onboardingStatus.ts resolvePostLoginRoute; network/profile errors route to /home, never to setup — prevents returning users being forced through onboarding again.
 - Android native code lives in native/android/ and is copied into the generated Capacitor android/ project by .github/workflows/build-android.yml — android/ is not committed, so CI regenerates it each build.
 - Episode AI reports call Google Gemini directly in generate-episode-insights using server-only Google credentials; history is user-scoped and Knowledge Base retrieval must not depend on the AI Gateway, so workspace key changes cannot break this path.
-- Chat uses a dedicated server-only Gemini key and native text/image/PDF requests with complete-response SSE output; this isolates episode credentials and detects unfinished provider replies.
+- HidroAlly chat calls the Lovable AI Gateway SDK (Responses surface) with complete-response SSE output and token-limit continuation; episode reports stay on their own Google key so chat usage cannot exhaust them.
 - Welcome delivery uses a service-only per-account ledger, signup-verification enqueueing, atomic claims and Resend idempotency; login/profile failures cannot create or duplicate welcomes.
 - The wearable hub assesses simulated EDA and HR locally without camera fusion; simulated readings remain excluded from real climate-alert severity.
 - Scheduled push acknowledges authenticated cron requests before processing them with EdgeRuntime.waitUntil; slow provider calls cannot cause pg_net's default timeout.
