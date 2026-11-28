@@ -1,3 +1,4 @@
+- [x] Repair Android dependency installation and refresh the npm lockfile; clean installation passed (777 packages), lockfile validation passed, and preview build OK. AAB generation still requires a new GitHub run in the synced fork.
 - [x] Stop welcome emails on returning logins; send once after signup verification with a protected delivery ledger and existing-user backfill.
 - [x] Remove camera scanning while preserving Resting, Active, and Trigger wearable simulations and shared EDA.
 - [ ] Restore live chatbot replies: dedicated-key integration is deployed, but Google returns 403 because this key's project has no free-tier access; replacement-key form was declined.
