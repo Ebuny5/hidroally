@@ -863,6 +863,17 @@ export type Database = {
       }
       keep_alive: { Args: never; Returns: undefined }
       log_engagement_action: { Args: { action: string }; Returns: undefined }
+      register_native_device: {
+        Args: {
+          p_app_version?: string
+          p_latitude?: number
+          p_longitude?: number
+          p_platform: string
+          p_previous_token?: string
+          p_token: string
+        }
+        Returns: boolean
+      }
       search_knowledge_base: {
         Args: {
           filter_category?: string
@@ -877,6 +888,10 @@ export type Database = {
           source: string
           title: string
         }[]
+      }
+      unbind_native_device: {
+        Args: { p_platform: string; p_token: string }
+        Returns: boolean
       }
     }
     Enums: {

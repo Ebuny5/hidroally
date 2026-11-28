@@ -7,6 +7,7 @@ import { climateAlertService } from '@/services/ClimateAlertService';
 import { audioAlertPlayer, type AlertKind } from '@/utils/audioAlertPlayer';
 import { attachNativeTapHandler } from '@/services/NativeNotificationBridge';
 import {
+  captureDeviceLocation,
   initializeNativePush,
   requestNativePushPermissionAndRegister,
   setNativePushNavigationHandler,
@@ -24,6 +25,38 @@ type InAppNotificationDetail = {
 const NotificationListener = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  // Installed phone app (Android/iOS): register for background climate alerts on
+  // first open, even before sign-in. Closed-app alerts must not depend on login.
+  useEffect(() => {
+    if (user) return; // the signed-in effect below handles registration
+    let cancelled = false;
+    setNativePushNavigationHandler((url) => navigate(url));
+    void (async () => {
+      const ready = await initializeNativePush();
+      if (cancelled) return;
+      if (!ready) {
+        const granted = await notificationManager.requestNativePermissionsIfAvailable();
+        if (cancelled) return;
+        if (granted) await requestNativePushPermissionAndRegister();
+      }
+      if (cancelled) return;
+      await captureDeviceLocation();
+      if (!cancelled) await syncNativePushContext();
+    })().catch((e) => console.warn('Guest native push setup failed:', e));
+    void attachNativeTapHandler((url) => navigate(url));
+
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        syncNativePushContext().catch(() => undefined);
+      }
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      cancelled = true;
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [user, navigate]);
 
   useEffect(() => {
     if (!user) return; // Only initialize background tasks and ask for permissions if logged in

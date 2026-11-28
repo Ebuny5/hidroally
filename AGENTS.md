@@ -5,3 +5,4 @@
 - Welcome delivery uses a service-only per-account ledger, signup-verification enqueueing, atomic claims and Resend idempotency; login/profile failures cannot create or duplicate welcomes.
 - The wearable hub assesses simulated EDA and HR locally without camera fusion; simulated readings remain excluded from real climate-alert severity.
 - Scheduled push acknowledges authenticated cron requests before processing them with EdgeRuntime.waitUntil; slow provider calls cannot cause pg_net's default timeout.
+- Native push devices register through the register_native_device RPC on first open, signed in or not, and sign-out only unbinds the account via unbind_native_device — closed-app climate alerts must never depend on login.

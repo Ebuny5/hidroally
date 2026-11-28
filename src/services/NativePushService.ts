@@ -55,10 +55,6 @@ async function loadModules(): Promise<NativeModules> {
   return mods;
 }
 
-function nativeEndpoint(platform: string, token: string): string {
-  return `native:${platform}:${token}`;
-}
-
 function readStoredToken(): string | null {
   try {
     return localStorage.getItem(TOKEN_KEY);
@@ -100,15 +96,6 @@ async function getAppVersion(): Promise<string | null> {
   }
 }
 
-async function getSignedInUserId(): Promise<string | null> {
-  try {
-    const { data } = await supabase.auth.getUser();
-    return data?.user?.id ?? null;
-  } catch {
-    return null;
-  }
-}
-
 /**
  * Persist the FCM/APNs token so the server can push to this install.
  * A rotated token deletes the stale row first (FCM rotates tokens on reinstall,
@@ -119,47 +106,20 @@ async function persistToken(token: string): Promise<boolean> {
   if (!m.isNative || !m.Capacitor) return false;
 
   const platform = m.Capacitor.getPlatform();
-  const endpoint = nativeEndpoint(platform, token);
   const previous = readStoredToken();
+  const coords = readCachedCoords() ?? (await captureDeviceLocation());
+  const appVersion = await getAppVersion();
 
-  if (previous && previous !== token) {
-    try {
-      await supabase
-        .from('push_subscriptions')
-        .delete()
-        .eq('endpoint', nativeEndpoint(platform, previous));
-    } catch {
-      /* best effort */
-    }
-  }
-
-  const [userId, appVersion] = await Promise.all([getSignedInUserId(), getAppVersion()]);
-  if (!userId) {
-    // Reminders are per-account; registration is retried once the user signs in.
-    console.log('[NativePush] No signed-in user yet, deferring token storage.');
-    return false;
-  }
-  const coords = readCachedCoords();
-
-  const row: any = {
-    endpoint,
-    kind: platform,
-    platform,
-    device_token: token,
-    user_id: userId,
-    is_active: true,
-    app_version: appVersion,
-    last_seen_at: new Date().toISOString(),
-  };
-  if (coords) {
-    row.latitude = coords.latitude;
-    row.longitude = coords.longitude;
-  }
-
-  // Native rows carry a device token instead of the web-push p256dh/auth keys.
-  const { error } = await supabase
-    .from('push_subscriptions')
-    .upsert(row as any, { onConflict: 'endpoint' });
+  // Works signed in or as a guest: a guest install still receives climate alerts
+  // while closed; signing in later links the same row to the account.
+  const { error } = await (supabase.rpc as any)('register_native_device', {
+    p_token: token,
+    p_platform: platform,
+    p_latitude: coords?.latitude ?? null,
+    p_longitude: coords?.longitude ?? null,
+    p_app_version: appVersion,
+    p_previous_token: previous && previous !== token ? previous : null,
+  });
 
   if (error) {
     console.error('[NativePush] Failed to store device token:', error.message);
@@ -169,6 +129,38 @@ async function persistToken(token: string): Promise<boolean> {
   storeToken(token);
   console.log('[NativePush] Device registered for background push:', platform);
   return true;
+}
+
+/**
+ * Read the phone's GPS once (native only) and cache it for background climate
+ * alerts. Never throws; returns null when permission is denied or GPS is off.
+ */
+export async function captureDeviceLocation(): Promise<{ latitude: number; longitude: number } | null> {
+  const m = await loadModules();
+  if (!m.isNative) return null;
+  try {
+    const { Geolocation } = await import('@capacitor/geolocation');
+    let perm = await Geolocation.checkPermissions();
+    if (perm.location !== 'granted' && perm.coarseLocation !== 'granted') {
+      perm = await Geolocation.requestPermissions();
+    }
+    if (perm.location !== 'granted' && perm.coarseLocation !== 'granted') return null;
+    const pos = await Geolocation.getCurrentPosition({
+      enableHighAccuracy: false,
+      timeout: 10000,
+      maximumAge: 10 * 60 * 1000,
+    });
+    const coords = { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
+    try {
+      localStorage.setItem('sweatsmart:lastCoords', JSON.stringify(coords));
+    } catch {
+      /* ignore */
+    }
+    return coords;
+  } catch (e) {
+    console.warn('[NativePush] Location unavailable:', e);
+    return null;
+  }
 }
 
 function attachListeners(m: NativeModules) {
@@ -296,31 +288,9 @@ export async function syncNativePushContext(): Promise<void> {
       return;
     }
 
-    const userId = await getSignedInUserId();
-    const coords = readCachedCoords();
-    const appVersion = await getAppVersion();
-    const platform = m.Capacitor.getPlatform();
-
-    const updates: any = {
-      last_seen_at: new Date().toISOString(),
-      is_active: true,
-    };
-    if (userId) updates.user_id = userId;
-    if (coords) {
-      updates.latitude = coords.latitude;
-      updates.longitude = coords.longitude;
-    }
-    if (appVersion) updates.app_version = appVersion;
-
-    const { data: updatedRows } = await supabase
-      .from('push_subscriptions')
-      .update(updates)
-      .eq('endpoint', nativeEndpoint(platform, token))
-      .select('id');
-
-    // The row can disappear (sign-out deletes it, or the server pruned a dead
-    // token). Register again so this install is reachable.
-    if (!updatedRows || updatedRows.length === 0) {
+    // Refresh location, app version and account binding (guest or signed in).
+    const ok = await persistToken(token);
+    if (!ok) {
       await registerDevice(m);
       return;
     }
@@ -341,8 +311,9 @@ export function setNativePushNavigationHandler(handler: ((url: string) => void) 
 }
 
 /**
- * Remove this device's token row. Called on sign-out so the next account on the
- * phone does not inherit the previous user's reminders.
+ * Unlink this device from the signed-in account on sign-out. The device stays
+ * registered as a guest, so climate alerts keep arriving while closed, but the
+ * next account on the phone does not inherit the previous user's reminders.
  */
 export async function clearNativePushBinding(): Promise<void> {
   const m = await loadModules();
@@ -352,14 +323,11 @@ export async function clearNativePushBinding(): Promise<void> {
   if (!token) return;
 
   try {
-    await supabase
-      .from('push_subscriptions')
-      .delete()
-      .eq('endpoint', nativeEndpoint(m.Capacitor.getPlatform(), token));
+    await (supabase.rpc as any)('unbind_native_device', {
+      p_token: token,
+      p_platform: m.Capacitor.getPlatform(),
+    });
   } catch {
     /* best effort */
-  } finally {
-    // Force a fresh registration on the next sign-in.
-    storeToken(null);
   }
 }
